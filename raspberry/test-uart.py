@@ -1,8 +1,9 @@
 import serial
-ser = serial.Serial ("/dev/ttyAMA0")    #Open named port 
-ser.baudrate = 9600                     #Set baud rate to 9600
-data = ser.read(10)  
-#Read ten characters from serial port to data
-while True:
-    ser.write('12345')  
-    print('12345')  
+
+ser = serial.Serial ("/dev/ttyS0",9600)    #Open named port 
+
+while 1:
+    data = ser.readline()
+    ser.write('esp\n'.encode())
+    print(data)
+
