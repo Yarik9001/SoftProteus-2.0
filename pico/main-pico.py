@@ -6,7 +6,7 @@ import _thread # многопоточность micropython
 def init():
     global motor0, motor1, motor2, motor3, motor4, motor5, led0, led1, servo0, servo1, uart1
     #инициализация связи
-    #uart1 = UART(2, baudrate=9600, tx=17, rx=16, timeout = 1000)
+    uart1 = UART(2, baudrate=9600, tx=17, rx=16, timeout = 1000)
     # инициализация моторов
     
     motor0 = PWM(Pin(2), freq=50)
@@ -82,7 +82,3 @@ def main():
     
 
 main()
-
-esptool.py --chip auto --port /dev/ttyUSB0 erase_flash
-
-esptool.py --chip auto --port /dev/ttyUSB0 -b 460800 --before=default_reset \ --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 2MB 0x0000 \ /home/pi/adafruit-circuitpython-espressif_saola_1_wrover-en_US-6.3.0.bin
