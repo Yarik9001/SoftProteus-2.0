@@ -67,8 +67,8 @@ def mainOut(*args):
         
 def main():
     init()
-    threadIn = _thread.start_new_thread(mainIn,())
-    threadOut = _thread.start_new_thread(mainOut,())
+    _thread.start_new_thread(mainIn,())
+    _thread.start_new_thread(mainOut,())
     
 if __name__ == '__main__':
     main()
