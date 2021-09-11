@@ -28,6 +28,9 @@ def mainIn(*args):
         # m0-m1-m2-m3-m4-m5-s0-s1 
         # по умолчению если ничего не приходит будет каждую секунду выдовать None и все будет оставаться в начальной позиции
         data = uart1.readline()
+        print(data)
+        uart1.write('0-0-0-0-0-0-0-0-0\n')
+        '''
         if data == None:
             print(None)
             # установка в нулевое положение и отключение всего
@@ -42,17 +45,25 @@ def mainIn(*args):
             servo1.duty(70)
             continue
         else:
-            massControll = str(data).split('-')
-        # отправка полученных значений на моторы 
-        motor0.duty(massControll[0])
-        motor1.duty(massControll[1])
-        motor2.duty(massControll[2])
-        motor3.duty(massControll[3])
-        motor4.duty(massControll[4])
-        motor5.duty(massControll[5])
-        # отправка полученных хначений на сервоприводы 
-        servo0.duty(massControll[6])
-        servo1.duty(massControll[7])
+            print(0)
+            datastr = str(data)[2:-3]
+            massControll = str(datastr).split('-')
+            print(massConrtroll)
+            
+            massControll = [int(i) for i in massControll]
+            
+            
+            # отправка полученных значений на моторы 
+            motor0.duty(massControll[0])
+            motor1.duty(massControll[1])
+            motor2.duty(massControll[2])
+            motor3.duty(massControll[3])
+            motor4.duty(massControll[4])
+            motor5.duty(massControll[5])
+            # отправка полученных хначений на сервоприводы 
+            servo0.duty(massControll[6])
+            servo1.duty(massControll[7])
+            '''
 
 def mainOut(*args):
     gebag = True
@@ -61,15 +72,18 @@ def mainOut(*args):
         # 0-0-0-0-0-0-0-0-0
         # опрос датчиков
         if gebag: 
-            uart1.write('0-0-0-0-0-0-0-0-0')
+            uart1.write('0-0-0-0-0-0-0-0-0\n')
+            print('0-0-0-0-0-0-0-0-0')
         sleep(1)
         
         
 def main():
     init()
-    _thread.start_new_thread(mainIn,())
+    mainIn()
     _thread.start_new_thread(mainOut,())
+    
     
 if __name__ == '__main__':
     main()
+
 
