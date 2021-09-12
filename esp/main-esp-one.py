@@ -1,6 +1,7 @@
 from machine import UART # общение с разбери по сериал порту 
 from machine import Pin, PWM # шим модули 
 from machine import ADC
+from time import sleep
 
 def initpins():
     global motor0, motor1, motor2, motor3, motor4, motor5,\
@@ -9,12 +10,33 @@ def initpins():
     #инициализация связи
     uart1 = UART(2, baudrate=19200, tx=17, rx=16, timeout = 1000)
     # инициализация моторов
-    motor0 = PWM(Pin(13), freq=50)
-    motor1 = PWM(Pin(12), freq=50)
-    motor2 = PWM(Pin(14), freq=50)
-    motor3 = PWM(Pin(27), freq=50)
-    motor4 = PWM(Pin(26), freq=50)
-    motor5 = PWM(Pin(25), freq=50)
+    motor0 = PWM(Pin(13), freq=100)
+    motor1 = PWM(Pin(12), freq=100)
+    motor2 = PWM(Pin(14), freq=100)
+    motor3 = PWM(Pin(27), freq=100)
+    motor4 = PWM(Pin(26), freq=100)
+    motor5 = PWM(Pin(25), freq=100)
+    motor0.duty(220)
+    motor1.duty(220)
+    motor2.duty(220)
+    motor3.duty(220)
+    motor4.duty(220)
+    motor5.duty(220)
+    sleep(2)
+    motor0.duty(90)
+    motor1.duty(90)
+    motor2.duty(90)
+    motor3.duty(90)
+    motor4.duty(90)
+    motor5.duty(90)
+    sleep(2)
+    motor0.duty(155)
+    motor1.duty(155)
+    motor2.duty(155)
+    motor3.duty(155)
+    motor4.duty(155)
+    motor5.duty(155)
+    sleep(2)
     # инициализация сервоприводов 
     servo0 = PWM(Pin(23), freq=50)
     servo1 = PWM(Pin(22), freq=50)
@@ -68,7 +90,7 @@ def main():
     while True:
         data = uart1.readline()
         if len(str(data)) <= 14:
-            data = b'70-70-70-70-70-70-70-70\n'
+            data = b'155-155-155-155-155-155-155-155\n'
             print(None)
         massControll = [int(i) for i in ((str(data)[2:-3]).split('-'))]
         print(massControll)

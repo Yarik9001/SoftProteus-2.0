@@ -5,6 +5,6 @@ ser = serial.Serial ("/dev/serial0", 19200)
 
 while 1:
     data = ser.readline()
-    ser.write('70-70-70-70-70-70-70-70\n'.encode())
+    ser.write('155-155-155-155-155-155-155-155\n'.encode())
     print(data)
-    sleep(0.01)
+    sleep(0.1)
