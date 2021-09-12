@@ -67,9 +67,9 @@ def main():
     initpins()
     while True:
         data = uart1.readline()
-        if len(str(data)) != 24:
+        if len(str(data)) <= 14:
             data = b'70-70-70-70-70-70-70-70\n'
-            uart1.write('\n')
+            print(None)
         massControll = [int(i) for i in ((str(data)[2:-3]).split('-'))]
         print(massControll)
         controllPwm(massControll)
@@ -79,4 +79,6 @@ def main():
         
 if __name__ == '__main__':
     main()
+
+
 
