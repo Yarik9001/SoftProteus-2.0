@@ -234,9 +234,10 @@ class MainPost:
             elif value < 0:
                 value = 0 
             return value
+        
         while True:
             data = self.DataPult
-            
+            # математика преобразования значений с джойстика в значения для моторов 
             J1_Val_Y = transformation(data['j1-val-y'])
             J1_Val_X = transformation(data['j1-val-x'])
             J2_Val_Y = transformation(data['j2-val-y'])
@@ -251,7 +252,6 @@ class MainPost:
             
             self.DataOutput["time"] = str(datetime.now())
             
-            # математика преобразования значений с джойстика в значения для моторов 
             self.Server.ControlProteus(self.DataOutput)
             self.DataInput = self.Server.ReceiverProteus()
             if self.telemetria:

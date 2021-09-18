@@ -71,7 +71,7 @@ def mainOut(*args):
         # 0-0-0-0-0-0-0-0-0
         # опрос датчиков
         if gebag: 
-            uart1.write('0-0-0-0-0-0-0-0-0')
+            uart1.write('0-0-0-0-0-0-0-0-0\n')
         sleep(1)
         
         
