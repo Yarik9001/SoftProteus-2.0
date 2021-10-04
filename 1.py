@@ -1,16 +1,4 @@
-string = str(b'0-0-0-0-0-0-0-0-0\n')
-string = str(b'70-70-70-70-70-70-20-20-70-70\n')
-print(string)
-print(string[2:-3])
+mass1  = {'1':1, '2':1, '3':1}
+mass2 = {'4':1, '5':1}
 
-data = string
-massControll = [int(i) for i in ((str(data)[2:-3]).split('-'))]
-print(massControll)
-
-'''
-datastr = str(data)[2:-3]
-massControll = str(datastr).split('-')
-massControll = [int(i) for i in massControll]
-print(massControll)
-'''
-print(len(b'70-70-70-70-70-70-70-70\n'))
+print({**mass1, **mass2})

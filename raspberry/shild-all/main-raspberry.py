@@ -2,6 +2,8 @@ import socket  # библиотека для связи
 import threading  # библиотека для потоков
 import sys
 import serial
+import board
+import busio
 from time import sleep  # библиотека длязадержек
 from datetime import datetime  # получение текущего времени
 from configparser import ConfigParser  # чтание конфигов
@@ -9,6 +11,7 @@ from ast import literal_eval
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_servokit import ServoKit
+
 
 class ROVProteusClient:
     #Класс ответсвенный за связь с постом 
@@ -40,31 +43,6 @@ class ROVProteusClient:
             if self.telemetria:
                 print(data)
             return data
-'''
-class ShieldTnpa:
-    def __init__(self):
-        # Создание обьекта для взаимодействия с низким уровнем по uart
-        self.PORT = "/dev/serial0"
-        self.RATE = 19200
-        self.serialPort = serial.Serial(self.PORT, self.RATE)
-        self.checkConnect = True   
-    
-    def ShildDispatch(self, data:list):
-        # отправка на аппарат
-        if self.checkConnect:
-            data = (str(data) + '\n').encode()
-            self.serialPort.write(data)
-            
-    def ShildReceivin(self):
-        # прием информации с аппарата 
-        if self.checkConnect:
-            data = self.serialPort.readline()
-            if len(str(data)) <= 5:
-                return None
-            data = [int(i) for i in ((str(data)[2:-3]).split('-'))]
-            return data 
-'''
-
 
 class Acp:
     def __init__(self):
@@ -87,32 +65,108 @@ class Acp:
         self.CorNulA4 = a4.value
         self.CorNulA5 = a5.value
         self.CorNulA6 = a6.value
+        
+        self.MassOut = {}
 
-    def mainAmperemeter(self):
-        '''
-        Функция опроса датчиков тока 
-        '''
-        while True:
-            a1 = AnalogIn(self.ads13, ADS.P0)
-            a2 = AnalogIn(self.ads13, ADS.P1)
-            a3 = AnalogIn(self.ads13, ADS.P2)
-            a4 = AnalogIn(self.adc46, ADS.P0)
-            a5 = AnalogIn(self.adc46, ADS.P1)
-            a6 = AnalogIn(self.adc46, ADS.P2)
-            # TODO  матан для перевода значений - отсылается уже в амперах
-            self.rov.client.MassOut['a1'] = round(
-                (a1.value - self.CorNulA1) * 0.00057321919, 3)
-            self.rov.client.MassOut['a2'] = round(
-                (a2.value - self.CorNulA2) * 0.00057321919, 3)
-            self.rov.client.MassOut['a3'] = round(
-                (a3.value - self.CorNulA3) * 0.00057321919, 3)
-            self.rov.client.MassOut['a4'] = round(
-                (a4.value - self.CorNulA4) * 0.00057321919, 3)
-            self.rov.client.MassOut['a5'] = round(
-                (a5.value - self.CorNulA5) * 0.00057321919, 3)
-            self.rov.client.MassOut['a6'] = round(
-                (a6.value - self.CorNulA6) * 0.00057321919, 3)
-            sleep(0.25)
+    def ReqestAmper(self):
+        #Функция опроса датчиков тока 
+        a1 = AnalogIn(self.ads13, ADS.P0)
+        a2 = AnalogIn(self.ads13, ADS.P1)
+        a3 = AnalogIn(self.ads13, ADS.P2)
+        a4 = AnalogIn(self.adc46, ADS.P0)
+        a5 = AnalogIn(self.adc46, ADS.P1)
+        a6 = AnalogIn(self.adc46, ADS.P2)
+        # TODO  матан для перевода значений - отсылается уже в амперах
+        self.MassOut['a0'] = round(
+            (a1.value - self.CorNulA1) * 0.00057321919, 3)
+        self.MassOut['a1'] = round(
+            (a2.value - self.CorNulA2) * 0.00057321919, 3)
+        self.MassOut['a2'] = round(
+            (a3.value - self.CorNulA3) * 0.00057321919, 3)
+        self.MassOut['a3'] = round(
+            (a4.value - self.CorNulA4) * 0.00057321919, 3)
+        self.MassOut['a4'] = round(
+            (a5.value - self.CorNulA5) * 0.00057321919, 3)
+        self.MassOut['a5'] = round(
+            (a6.value - self.CorNulA6) * 0.00057321919, 3)
+        # возвращает словарь с значениями амрепметра нумерация с нуля
+        return self.MassOut
+
+class PwmControl:
+    def __init__(self):
+        # диапазон шим модуляции 
+        self.pwmMin = 1000
+        self.pwmMax = 1950
+        # коофиценты корректировки мощности на каждый мотор 
+        self.CorDrk0 = 1
+        self.CorDrk1 = 1
+        self.CorDrk2 = 1
+        self.CorDrk3 = 1
+        self.CorDrk4 = 1
+        self.CorDrk5 = 1
+        # инициализация платы 
+        self.kit = ServoKit(channels=16)
+
+        self.drk0 = self.kit.servo[0]
+        self.drk0.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        self.drk1 = self.kit.servo[1]
+        self.drk1.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        self.drk2 = self.kit.servo[2]
+        self.drk2.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        self.drk3 = self.kit.servo[3]
+        self.drk3.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        self.drk4 = self.kit.servo[4]
+        self.drk4.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        self.drk5 = self.kit.servo[5]
+        self.drk5.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        
+        # инициализация моторов 
+        self.drk0.angle = 180
+        self.drk1.angle = 180
+        self.drk2.angle = 180
+        self.drk3.angle = 180
+        self.drk4.angle = 180
+        self.drk5.angle = 180
+        sleep(2)
+        self.drk0.angle = 0
+        self.drk1.angle = 0
+        self.drk2.angle = 0
+        self.drk3.angle = 0
+        self.drk4.angle = 0
+        self.drk5.angle = 0
+        sleep(2)
+        self.drk0.angle = 87
+        self.drk1.angle = 87
+        self.drk2.angle = 87
+        self.drk3.angle = 87
+        self.drk4.angle = 87
+        self.drk5.angle = 87
+        sleep(3)
+
+    def ControlMotor(self, mass: dict):
+        # отправка шим сигналов на моторы
+        self.drk0.angle = mass['m0']
+        self.drk1.angle = mass['m1']
+        self.drk2.angle = mass['m2']
+        self.drk3.angle = mass['m3']
+        self.drk4.angle = mass['m4']
+        self.drk5.angle = mass['m5']
+
+class ReqiestSensor:
+    # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
+    def __init__(self):
+        self.acp = Acp() # обект класса ацп 
+        self.dept = None 
+    
+    def reqiest(self):
+        # опрос датчиков; возвращает обьект класса словарь 
+        massacp  = Acp.ReqestAmper()
+        
+        massout = {**massacp}
+        return massout
+
+class compass:
+    pass
 
 
 class MainApparat:
@@ -127,27 +181,21 @@ class MainApparat:
                             'motor4': 0, 'motor5': 0}
         # массив отсылаемый на аппарат 
         self.DataOutput = {'time': None,'dept': 0,'volt': 0, 'azimut': 0 }
-        
-        self.client = ROVProteusClient()
-        self.shield = ShieldTnpa()
-        
-    def RunCommand(self):
-        while True:
-            # блок отправки значений на аппарат
-            self.DataInput = self.client.ClientReceivin()
-            dat = self.DataInput
-            datalist  = [dat['motor0'], dat['motor1'], dat['motor2'],
-                        dat['motor3'], dat['motor4'], dat['motor5'], 
-                        dat['servo'], dat['manipul']]
-            self.shield.ShildDispatch(datalist)
-            
-            # блок приема ответа с телеметрией 
-            inputlist = self.shield.ShildReceivin()
-            self.DataOutput['volt'] = inputlist[0]
-            self.DataOutput['dept'] = inputlist[1]
-            self.DataOutput['azimut'] = inputlist[2]
-            self.DataOutput['time'] = str(datetime.now())
-            
-            self.client.ClientDispatch(self.DataOutput)
-            
 
+        self.client = ROVProteusClient()
+        self.sensor = ReqiestSensor()
+
+
+    def RunMainApparat(self):
+        # прием информации с поста управления 
+        # отработка по принятой информации 
+        # сбор информации с датчиков 
+        # отправка телеметрии на пост управления
+        while True:
+            controllmass = self.client.ClientReceivin()
+            print(controllmass)
+            self.client.ClientDispatch({'time': None,'dept': 0,'volt': 0, 'azimut': 0 })
+
+if __name__ == '__main__':
+    apparat = MainApparat()
+    apparat.RunMainApparat()
