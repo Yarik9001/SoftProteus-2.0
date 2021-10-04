@@ -95,3 +95,5 @@ class MainApparat:
             self.DataOutput['time'] = str(datetime.now())
             
             self.client.ClientDispatch(self.DataOutput)
+            
+

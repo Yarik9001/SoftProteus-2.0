@@ -18,8 +18,8 @@ class ServerMainPult:
 
     def __init__(self):
         # инициализация атрибутов
-        self.HOST = '127.0.0.1'
-        self.PORT = 1234
+        self.HOST = '192.168.1.100'
+        self.PORT = 1237
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.log = True
@@ -117,7 +117,7 @@ class MyController(Controller):
     
     def on_L3_x_at_rest(self):
         self.DataPult['j1-val-x'] = 0
-        if self.pult.logcmd:
+        if self.telemetria:
             print('right')
             
     def on_R3_up(self, value):

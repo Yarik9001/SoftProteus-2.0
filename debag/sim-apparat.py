@@ -1,7 +1,7 @@
 import socket  # библиотека для связи
 import threading  # библиотека для потоков
 import sys
-import serial
+# import serial
 from time import sleep  # библиотека длязадержек
 from datetime import datetime  # получение текущего времени
 from configparser import ConfigParser  # чтание конфигов
@@ -11,7 +11,7 @@ class ROVProteusClient:
     #Класс ответсвенный за связь с постом 
     def __init__(self):
         self.HOST = '127.0.0.1'
-        self.PORT = 1234
+        self.PORT = 1236
         self.telemetria = True
         self.checkConnect = True      
         # Настройки клиента 
@@ -23,7 +23,7 @@ class ROVProteusClient:
         if self.checkConnect:
             data['time'] = str(datetime.now())
             DataOutput = str(data).encode("utf-8")
-            self.client.send(data)
+            self.client.send(DataOutput)
 
     def ClientReceivin(self):
         #Прием информации с поста управления 
@@ -43,7 +43,7 @@ class ShieldTnpa:
         # Создание обьекта для взаимодействия с низким уровнем по uart
         self.PORT = "/dev/serial0"
         self.RATE = 19200
-        self.serialPort = serial.Serial(self.PORT, self.RATE)
+        #self.serialPort = serial.Serial(self.PORT, self.RATE)
         self.checkConnect = True   
     
     def ShildDispatch(self, data:list):
@@ -51,7 +51,7 @@ class ShieldTnpa:
         if self.checkConnect:
             data = (str(data) + '\n').encode()
             #self.serialPort.write(data)
-            
+            import serial
     def ShildReceivin(self):
         # прием информации с аппарата 
         if self.checkConnect:
@@ -96,3 +96,8 @@ class MainApparat:
             self.DataOutput['time'] = str(datetime.now())
             
             self.client.ClientDispatch(self.DataOutput)
+            
+if __name__ == '__main__':
+    rov = MainApparat()
+    rov.RunCommand()
+    
