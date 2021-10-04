@@ -1,19 +1,18 @@
+import FaBo9Axis_MPU9250
+import time
+import sys
+mpu9250 = FaBo9Axis_MPU9250.MPU9250()
+from math import atan2, pi
 
-from mpu9250_i2c import *
-
-time.sleep(1) # delay necessary to allow mpu9250 to settle
-
-print('recording data')
-while 1:
-    try:
-        ax,ay,az,wx,wy,wz = mpu6050_conv() # read and convert mpu6050 data
-        mx,my,mz = AK8963_conv() # read and convert AK8963 magnetometer data
-    except:
-        continue
+try:
     
-    print('{}'.format('-'*30))
-    print('accel [g]: x = {0:2.2f}, y = {1:2.2f}, z {2:2.2f}= '.format(ax,ay,az))
-    print('gyro [dps]:  x = {0:2.2f}, y = {1:2.2f}, z = {2:2.2f}'.format(wx,wy,wz))
-    print('mag [uT]:   x = {0:2.2f}, y = {1:2.2f}, z = {2:2.2f}'.format(mx,my,mz))
-    print('{}'.format('-'*30))
-    time.sleep(1)
+    while True:
+        accel = mpu9250.readAccel()
+        gyro = mpu9250.readGyro()
+        mag = mpu9250.readMagnet()
+        time.sleep(0.1) 
+        print(round((atan2(mag['x'], mag['y']) * 180 / pi), 3))
+        
+
+except KeyboardInterrupt:
+    sys.exit()

@@ -11,6 +11,8 @@ from ast import literal_eval
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_servokit import ServoKit
+import FaBo9Axis_MPU9250
+from math import atan2, pi
 
 
 class ROVProteusClient:
@@ -152,21 +154,37 @@ class PwmControl:
         self.drk4.angle = mass['m4']
         self.drk5.angle = mass['m5']
 
+class Compass:
+    # класс описывающий общение с модулем навигации mpu9250
+    def __init__(self):
+        self.mpu9250 = FaBo9Axis_MPU9250.MPU9250()
+    
+    def reqiest(self):
+        # возвращает словарь с значениями азимута 
+        mag = self.mpu9250.readMagnet()
+        return {'azim':(round((atan2(mag['x'], mag['y']) * 180 / pi), 3))}
+
+class Dept:
+    # класс описывающий общение с датчиком глубины 
+    def __init__(self):
+        pass
+    
+
 class ReqiestSensor:
     # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
     def __init__(self):
         self.acp = Acp() # обект класса ацп 
+        self.mpu9250 = Compass() # обьект класса compass 
         self.dept = None 
     
     def reqiest(self):
         # опрос датчиков; возвращает обьект класса словарь 
-        massacp  = Acp.ReqestAmper()
+        massacp  = self.acp.ReqestAmper()
+        massaz = self.mpu9250.reqiest()
         
-        massout = {**massacp}
+        massout = {**massacp, **massaz}
         return massout
 
-class compass:
-    pass
 
 
 class MainApparat:
