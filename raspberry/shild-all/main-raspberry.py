@@ -1,7 +1,4 @@
 import socket  # библиотека для связи
-import threading  # библиотека для потоков
-import sys
-import serial
 import board
 import busio
 from time import sleep  # библиотека длязадержек
@@ -13,6 +10,7 @@ from adafruit_ads1x15.analog_in import AnalogIn
 from adafruit_servokit import ServoKit
 import FaBo9Axis_MPU9250
 from math import atan2, pi
+import ms5837
 
 
 class ROVProteusClient:
@@ -94,6 +92,38 @@ class Acp:
         # возвращает словарь с значениями амрепметра нумерация с нуля
         return self.MassOut
 
+class Compass:
+    # класс описывающий общение с модулем навигации mpu9250
+    def __init__(self):
+        self.mpu9250 = FaBo9Axis_MPU9250.MPU9250()
+    
+    def reqiest(self):
+        # возвращает словарь с значениями азимута 
+        mag = self.mpu9250.readMagnet()
+        return {'azim':(round((atan2(mag['x'], mag['y']) * 180 / pi), 3))}
+
+class DeptAndTemp:
+    # класс описывающий общение с датчиком глубины 
+    def __init__(self):
+        # плотность воды 
+        density = 1000 
+        # илициализация сенсора 
+        self.sensor  = ms5837.MS5837_30BA()
+        if self.sensor.init():
+            self.sensor.setFluidDensity(ms5837.DENSITY_SALTWATER)
+            self.sensor.setFluidDensity(density)
+
+
+    def reqiest(self):
+        # опрос датчика давления
+        if self.sensor.read():
+            massout = {}
+            massout['dept'] = self.sensor.depth()
+            massout['term'] = self.sensor.temperature()
+            return massout
+        else:
+            return {'dept':-100,'temp': -100}
+
 class PwmControl:
     def __init__(self):
         # диапазон шим модуляции 
@@ -121,7 +151,6 @@ class PwmControl:
         self.drk4.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.drk5 = self.kit.servo[5]
         self.drk5.set_pulse_width_range(self.pwmMin, self.pwmMax)
-        
         # инициализация моторов 
         self.drk0.angle = 180
         self.drk1.angle = 180
@@ -154,38 +183,22 @@ class PwmControl:
         self.drk4.angle = mass['m4']
         self.drk5.angle = mass['m5']
 
-class Compass:
-    # класс описывающий общение с модулем навигации mpu9250
-    def __init__(self):
-        self.mpu9250 = FaBo9Axis_MPU9250.MPU9250()
-    
-    def reqiest(self):
-        # возвращает словарь с значениями азимута 
-        mag = self.mpu9250.readMagnet()
-        return {'azim':(round((atan2(mag['x'], mag['y']) * 180 / pi), 3))}
-
-class Dept:
-    # класс описывающий общение с датчиком глубины 
-    def __init__(self):
-        pass
-    
-
 class ReqiestSensor:
     # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
     def __init__(self):
         self.acp = Acp() # обект класса ацп 
         self.mpu9250 = Compass() # обьект класса compass 
-        self.dept = None 
+        self.ms5837 = DeptAndTemp()
     
     def reqiest(self):
         # опрос датчиков; возвращает обьект класса словарь 
         massacp  = self.acp.ReqestAmper()
         massaz = self.mpu9250.reqiest()
+        massMs5837 = self.ms5837.reqiest()
         
-        massout = {**massacp, **massaz}
+        massout = {**massacp, **massaz, **massMs5837}
+        
         return massout
-
-
 
 class MainApparat:
     def __init__(self):
@@ -202,17 +215,16 @@ class MainApparat:
 
         self.client = ROVProteusClient()
         self.sensor = ReqiestSensor()
-
-
+        
     def RunMainApparat(self):
         # прием информации с поста управления 
         # отработка по принятой информации 
         # сбор информации с датчиков 
         # отправка телеметрии на пост управления
         while True:
-            controllmass = self.client.ClientReceivin()
-            print(controllmass)
-            self.client.ClientDispatch({'time': None,'dept': 0,'volt': 0, 'azimut': 0 })
+            controllmass = self.client.ClientReceivin() # прием информации с поста управления 
+            print(controllmass) # отработка принятой информации 
+            self.client.ClientDispatch(self.sensor.reqiest()) # сбор информации с датчиков и отправка на пост управления 
 
 if __name__ == '__main__':
     apparat = MainApparat()
