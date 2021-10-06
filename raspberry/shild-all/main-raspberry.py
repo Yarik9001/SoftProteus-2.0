@@ -29,7 +29,7 @@ class ROVProteusClient:
         if self.checkConnect:
             data['time'] = str(datetime.now())
             DataOutput = str(data).encode("utf-8")
-            self.client.send(data)
+            self.client.send(DataOutput)
 
     def ClientReceivin(self):
         #Прием информации с поста управления 
