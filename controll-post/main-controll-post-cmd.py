@@ -19,7 +19,7 @@ class ServerMainPult:
     def __init__(self):
         # инициализация атрибутов
         self.HOST = '192.168.1.100'
-        self.PORT = 1235
+        self.PORT = 1234
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.log = True
