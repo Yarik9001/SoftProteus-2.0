@@ -199,6 +199,19 @@ class ReqiestSensor:
         massout = {**massacp, **massaz, **massMs5837}
         
         return massout
+    
+class Command:
+    def __init__(self):
+        self.pwmcom = PwmControl()
+        
+    def commanda(self, command):
+        command['motor0'] = 180 - command['motor0'] * 1.8
+        command['motor1'] = 180 - command['motor1'] * 1.8
+        command['motor2'] = 180 - command['motor2'] * 1.8
+        command['motor3'] = 180 - command['motor3'] * 1.8
+        command['motor4'] = 180 - command['motor4'] * 1.8
+        command['motor5'] = 180 - command['motor5'] * 1.8
+        self.pwmcom.ControlMotor(command)
 
 class MainApparat:
     def __init__(self):
@@ -215,6 +228,7 @@ class MainApparat:
 
         self.client = ROVProteusClient()
         self.sensor = ReqiestSensor()
+        self.comandor = Command()
         
     def RunMainApparat(self):
         # прием информации с поста управления 
@@ -222,8 +236,8 @@ class MainApparat:
         # сбор информации с датчиков 
         # отправка телеметрии на пост управления
         while True:
-            controllmass = self.client.ClientReceivin() # прием информации с поста управления 
-            print(controllmass) # отработка принятой информации 
+            self.controllmass = self.client.ClientReceivin() # прием информации с поста управления 
+            self.comandor.commanda(self.controllmass)
             self.client.ClientDispatch(self.sensor.reqiest()) # сбор информации с датчиков и отправка на пост управления 
 
 if __name__ == '__main__':
