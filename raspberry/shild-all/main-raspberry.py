@@ -176,12 +176,12 @@ class PwmControl:
 
     def ControlMotor(self, mass: dict):
         # отправка шим сигналов на моторы
-        self.drk0.angle = mass['m0']
-        self.drk1.angle = mass['m1']
-        self.drk2.angle = mass['m2']
-        self.drk3.angle = mass['m3']
-        self.drk4.angle = mass['m4']
-        self.drk5.angle = mass['m5']
+        self.drk0.angle = mass['motor0']
+        self.drk1.angle = mass['motor1']
+        self.drk2.angle = mass['motor2']
+        self.drk3.angle = mass['motor3']
+        self.drk4.angle = mass['motor4']
+        self.drk5.angle = mass['motor5']
 
 class ReqiestSensor:
     # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
