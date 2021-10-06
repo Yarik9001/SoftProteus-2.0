@@ -16,7 +16,7 @@ import ms5837
 class ROVProteusClient:
     #Класс ответсвенный за связь с постом 
     def __init__(self):
-        self.HOST = '127.0.0.1'
+        self.HOST = '192.168.1.100'
         self.PORT = 1234
         self.telemetria = True
         self.checkConnect = True      
