@@ -243,11 +243,10 @@ class MainApparat:
         # отработка по принятой информации 
         # сбор информации с датчиков 
         # отправка телеметрии на пост управления
-        self.controllmass = self.client.ClientReceivin()
-        self.client.ClientDispatch(self.sensor.reqiest())
         while True:
-            if self.client.ClientReceivin() != None:
-                self.controllmass = self.client.ClientReceivin() # прием информации с поста управления 
+            data = self.client.ClientReceivin()
+            if data!= None:
+                self.controllmass = data # прием информации с поста управления 
             else:
                 break
             
