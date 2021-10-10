@@ -127,7 +127,7 @@ class DeptAndTemp:
 class PwmControl:
     def __init__(self):
         # диапазон шим модуляции 
-        self.pwmMin = 1000
+        self.pwmMin = 1100
         self.pwmMax = 1950
         # коофиценты корректировки мощности на каждый мотор 
         self.CorDrk0 = 1
@@ -243,6 +243,8 @@ class MainApparat:
         # отработка по принятой информации 
         # сбор информации с датчиков 
         # отправка телеметрии на пост управления
+        self.controllmass = self.client.ClientReceivin()
+        self.client.ClientDispatch(self.sensor.reqiest())
         while True:
             if self.client.ClientReceivin() != None:
                 self.controllmass = self.client.ClientReceivin() # прием информации с поста управления 
