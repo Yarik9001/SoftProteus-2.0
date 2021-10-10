@@ -17,7 +17,7 @@ class ROVProteusClient:
     #Класс ответсвенный за связь с постом 
     def __init__(self):
         self.HOST = '192.168.1.100'
-        self.PORT = 1234
+        self.PORT = 1240
         self.telemetria = True
         self.checkConnect = True      
         # Настройки клиента 
@@ -127,8 +127,8 @@ class DeptAndTemp:
 class PwmControl:
     def __init__(self):
         # диапазон шим модуляции 
-        self.pwmMin = 900
-        self.pwmMax = 1800
+        self.pwmMin = 1000
+        self.pwmMax = 2000
         # коофиценты корректировки мощности на каждый мотор 
         self.CorDrk0 = 1
         self.CorDrk1 = 1
@@ -205,12 +205,12 @@ class Command:
         self.pwmcom = PwmControl()
         
     def commanda(self, command):
-        command['motor0'] = 180 - command['motor0'] * 1.8
-        command['motor1'] = 180 - command['motor1'] * 1.8
-        command['motor2'] = 180 - command['motor2'] * 1.8
-        command['motor3'] = 180 - command['motor3'] * 1.8
-        command['motor4'] = 180 - command['motor4'] * 1.8
-        command['motor5'] = 180 - command['motor5'] * 1.8
+        command['motor0'] = (180 - command['motor0'] * 1.8) - 3
+        command['motor1'] = (180 - command['motor1'] * 1.8) - 3
+        command['motor2'] = (180 - command['motor2'] * 1.8) - 3
+        command['motor3'] = (180 - command['motor3'] * 1.8) - 3
+        command['motor4'] = (180 - command['motor4'] * 1.8) - 3
+        command['motor5'] = (180 - command['motor5'] * 1.8) - 3
         self.pwmcom.ControlMotor(command)
 
 class MainApparat:

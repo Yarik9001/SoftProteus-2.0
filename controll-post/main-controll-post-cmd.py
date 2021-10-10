@@ -63,7 +63,7 @@ class ServerMainPult:
     def __init__(self):
         # инициализация атрибутов
         self.HOST = '192.168.1.100'
-        self.PORT = 1235
+        self.PORT = 1240
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.telemetria = False
@@ -288,6 +288,7 @@ class MainPost:
         self.RateCommandOut = 0.1
         self.telemetria = False
         self.correctCom = True
+        self.checkKILL = False
         self.lodi.info('MainPost-init')
 
     def RunController(self):
@@ -362,25 +363,24 @@ class MainPost:
             
             if self.telemetria:
                 self.lodi.debug('DataInput - {self.DataInput}')
-                
+            
             sleep(self.RateCommandOut)
 
     def CommandLine(self):
         while True:
             command = input() # ввод с клавиатуры
-            if command == 'close':
-                self.Server.server.close()
-                sys.exit()
-                break
+            
 
     def RunMain(self):
-        ThreadJoi = threading.Thread(target=self.RunController)
-        ThreadCom = threading.Thread(target=self.RunCommand)
-        ThreadComLine = threading.Thread(target=self.CommandLine)
+        self.ThreadJoi = threading.Thread(target=self.RunController)
+        self.ThreadCom = threading.Thread(target=self.RunCommand)
+        self.ThreadComLine = threading.Thread(target=self.CommandLine)
 
-        ThreadJoi.start()
-        ThreadCom.start()
-        ThreadComLine.start()
+        self.ThreadJoi.start()
+        self.ThreadCom.start()
+        self.ThreadComLine.start()
+
+
 
 
 if __name__ == '__main__':
