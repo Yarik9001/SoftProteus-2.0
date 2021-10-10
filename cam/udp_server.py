@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 
 host = "192.168.1.100"
-port = 5000
+port = 5001
 max_length = 65540
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

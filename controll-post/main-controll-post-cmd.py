@@ -63,7 +63,7 @@ class ServerMainPult:
     def __init__(self, logger:MedaLogging):
         # инициализация атрибутов
         self.HOST = '192.168.1.100'
-        self.PORT = 1253
+        self.PORT = 1255
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.telemetria = False
@@ -293,6 +293,8 @@ class MainPost:
         self.lodi.info('MyController-listen')
         self.Controllps4.listen()
 
+    def RunCam(self):
+        os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
 
     def RunCommand(self):
         self.lodi.info('MainPost-RunCommand')
@@ -383,13 +385,14 @@ class MainPost:
         self.ThreadJoi = threading.Thread(target=self.RunController)
         self.ThreadCom = threading.Thread(target=self.RunCommand)
         self.ThreadComLine = threading.Thread(target=self.CommandLine)
+        self.ThreadCam  =threading.Thread(target=self.RunCam)
 
         self.ThreadJoi.start()
         self.ThreadCom.start()
         self.ThreadComLine.start()
+        self.ThreadCam.start()
 
 
 if __name__ == '__main__':
     post = MainPost()
-    os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
     post.RunMain()

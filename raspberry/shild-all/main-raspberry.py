@@ -14,6 +14,7 @@ from adafruit_servokit import ServoKit
 import FaBo9Axis_MPU9250
 from math import atan2, pi
 import ms5837
+from threading import Thread
 
 
 class MedaLogging:
@@ -320,8 +321,12 @@ class MainApparat:
         self.client = ROVProteusClient(self.logger)
         self.sensor = ReqiestSensor(self.logger)
         self.comandor = Command(self.logger)
-        
+    def RunCam(self):
+        os.system('/home/pi/SoftProteus-2.0/cam/udp_client.py')
+    
     def RunMainApparat(self):
+        self.ThreadCam = Thread(target=self.RunCam)
+        self.ThreadCam.start()
         # прием информации с поста управления 
         # отработка по принятой информации 
         # сбор информации с датчиков 
@@ -338,5 +343,4 @@ class MainApparat:
 
 if __name__ == '__main__':
     apparat = MainApparat()
-    os.system('/bin/python3 /home/pi/SoftProteus-2.0/cam/udp_client.py')
     apparat.RunMainApparat()
