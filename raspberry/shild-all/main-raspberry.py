@@ -313,9 +313,11 @@ class MainApparat:
         # массив отсылаемый на аппарат 
         self.DataOutput = {'time': None,'dept': 0,'volt': 0, 'azimut': 0 }
 
-        self.client = ROVProteusClient()
-        self.sensor = ReqiestSensor()
-        self.comandor = Command()
+        self.logger = MedaLogging()
+        
+        self.client = ROVProteusClient(self.logger)
+        self.sensor = ReqiestSensor(self.logger)
+        self.comandor = Command(self.logger)
         
     def RunMainApparat(self):
         # прием информации с поста управления 
