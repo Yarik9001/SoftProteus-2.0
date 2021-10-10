@@ -1,9 +1,51 @@
 import socket
 import threading  # модуль для разделения на потоки
+import logging
+import coloredlogs
 from datetime import datetime  # получение  времени
 from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
 from pyPS4Controller.controller import Controller
+
+
+class MedaLogging:
+    def __init__(self):
+        self.mylogs = logging.getLogger(__name__)
+        self.mylogs.setLevel(logging.DEBUG)
+        # обработчик записи в лог-файл
+        self.file = logging.FileHandler("Sample.log")
+        self.fileformat = logging.Formatter(
+            "%(asctime)s:%(levelname)s:%(message)s")
+        self.file.setLevel(logging.DEBUG)
+        self.file.setFormatter(self.fileformat)
+        # обработчик вывода в консоль лог файла
+        self.stream = logging.StreamHandler()
+        self.streamformat = logging.Formatter(
+            "%(levelname)s:%(module)s:%(message)s")
+        self.stream.setLevel(logging.DEBUG)
+        self.stream.setFormatter(self.streamformat)
+        # инициализация обработчиков
+        self.mylogs.addHandler(self.file)
+        self.mylogs.addHandler(self.stream)
+        coloredlogs.install(level=logging.DEBUG, logger=self.mylogs,
+                            fmt='%(asctime)s [%(levelname)s] - %(message)s')
+
+        self.mylogs.info('start-logging')
+
+    def debug(self, message):
+        self.mylogs.debug(message)
+
+    def info(self, message):
+        self.mylogs.info(message)
+
+    def warning(self, message):
+        self.mylogs.warning(message)
+
+    def critical(self, message):
+        self.mylogs.critical(message)
+
+    def error(self, message):
+        self.mylogs.error(message)
 
 
 class ServerMainPult:
@@ -23,7 +65,6 @@ class ServerMainPult:
         self.PORT = 1235
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
-        self.log = True
         self.telemetria = False
         self.checkConnect = False
         # настройка сервера
@@ -32,6 +73,7 @@ class ServerMainPult:
         self.server.listen(1)
         self.user_socket, self.address = self.server.accept()
         self.checkConnect = True
+        
         if self.telemetria:
             print("ROV-Connected", self.user_socket)
 
@@ -228,25 +270,31 @@ class MainPost:
         self.DataOutput = {'time': None,  # Текущее время
                            'motorpowervalue': 1,  # мощность моторов
                            'led': False,  # управление светом
-                           'manipul': 0,  # Управление манипулятором
+                           'man': 0,  # Управление манипулятором
                            'servo': 0,  # управление наклоном камеры
                            'motor0': 0, 'motor1': 0,  # значения мощности на каждый мотор
                            'motor2': 0, 'motor3': 0,
                            'motor4': 0, 'motor5': 0}
         # словарик получаемый с аппарата
         self.DataInput = {'time': None, 'dept': 0, 'volt': 0, 'azimut': 0}
+        self.lodi = MedaLogging()
 
         self.Server = ServerMainPult()  # поднимаем сервер
+        self.lodi.info('ServerMainPult - init')
         self.Controllps4 = MyController()  # поднимаем контролеер
+        self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
         self.RateCommandOut = 0.1
         self.telemetria = False
         self.correctCom = True
+        self.lodi.info('MainPost-init')
 
     def RunController(self):
+        self.lodi.info('MyController-listen')
         self.Controllps4.listen()
 
     def RunCommand(self):
+        self.lodi.info('MainPost-RunCommand')
         '''
         Движение вперед - (1 вперед 2 вперед 3 назад 4 назад) 
         Движение назад - (1 назад 2 назад 3 вперед 4 вперед)
@@ -272,7 +320,10 @@ class MainPost:
         while True:
             data = self.DataPult
             # математика преобразования значений с джойстика в значения для моторов
-            print(data)
+            
+            if self.telemetria:
+                self.lodi.debug(f'DataPult - {data}')
+                
             if self.correctCom:
                 J1_Val_Y = transformation(data['j1-val-y']) + data['ly-cor']
                 J1_Val_X = transformation(data['j1-val-x']) + data['lx-cor']
@@ -298,10 +349,19 @@ class MainPost:
 
             self.DataOutput["time"] = str(datetime.now())
 
+            self.DataOutput['led'] = data['led']
+            self.DataOutput['man'] = data['man']
+            self.DataOutput['servo'] = data['servo-cam']
+            
+            if self.telemetria:
+                self.lodi.debug('DataOutput - {self.DataOutput}')
+                
             self.Server.ControlProteus(self.DataOutput)
             self.DataInput = self.Server.ReceiverProteus()
+            
             if self.telemetria:
-                print(self.DataInput)
+                self.lodi.debug('DataInput - {self.DataInput}')
+                
             sleep(self.RateCommandOut)
 
     def CommandLine(self):
