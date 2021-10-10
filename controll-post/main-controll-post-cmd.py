@@ -83,12 +83,21 @@ class MyController(Controller):
         self.DataPult = {'j1-val-y': 0, 'j1-val-x': 0,
                          'j2-val-y': 0, 'j2-val-x': 0,
                          'ly-cor': 0, 'lx-cor': 0,
-                         'ry-cor': 0, 'rx-cor': 0}
+                         'ry-cor': 0, 'rx-cor': 0,
+                         'man': 0, 'servo-cam': 0,
+                         'led': False, 'auto-dept': False}
         self.log = True
         self.telemetria = False
+        self.optionscontrol = False
+    # переключение режимов корректировок
+
+    def on_options_press(self):
+        self.optionscontrol = not self.optionscontrol
+    # функция перевода данных с джойстиков
 
     def transp(self, value):
         return -1 * (value // 328)
+    # блок опроса функций джойстиков
 
     def on_L3_up(self, value):
         self.DataPult['j1-val-y'] = -1 * value
@@ -149,30 +158,53 @@ class MyController(Controller):
         self.DataPult['j2-val-x'] = 0
         if self.telemetria:
             print('turn-left')
+    # блок внесения корректировок с кнопок и управления светом, поворотом камеры, манипулятором
 
     def on_x_press(self):
-        if self.DataPult['ry-cor'] >= - 50:
-            self.DataPult['ry-cor'] -= 10
+        if self.optionscontrol:
+            if self.DataPult['ry-cor'] >= - 50:
+                self.DataPult['ry-cor'] -= 10
+        else:
+            if self.DataPult['servo-cam'] <= 170:
+                self.DataPult['servo-cam'] += 10
 
     def on_triangle_press(self):
-        if self.DataPult['ry-cor'] <= 50:
-            self.DataPult['ry-cor'] += 10
+        if self.optionscontrol:
+            if self.DataPult['ry-cor'] <= 50:
+                self.DataPult['ry-cor'] += 10
+        else:
+            if self.DataPult['servo-cam'] >= 10:
+                self.DataPult['sevo-cam'] -= 10
 
     def on_square_press(self):
-        if self.DataPult['rx-cor'] <= 50:
-            self.DataPult['rx-cor'] += 10
+        if self.optionscontrol:
+            if self.DataPult['rx-cor'] <= 50:
+                self.DataPult['rx-cor'] += 10
+        else:
+            if self.DataPult['man'] <= 170:
+                self.DataPult['man'] += 10
 
     def on_circle_press(self):
-        if self.DataPult['rx-cor'] >= -50:
-            self.DataPult['rx-cor'] -= 10
+        if self.optionscontrol:
+            if self.DataPult['rx-cor'] >= -50:
+                self.DataPult['rx-cor'] -= 10
+        else:
+            if self.DataPult['man'] >= 10:
+                self.DataPult['man'] -= 10
 
     def on_up_arrow_press(self):
-        if self.DataPult['ly-cor'] >= -50:
-            self.DataPult['ly-cor'] -= 10
+        if self.optionscontrol:
+            if self.DataPult['ly-cor'] >= -50:
+                self.DataPult['ly-cor'] -= 10
+        else:
+            self.DataPult['led'] = not self.DataPult['led']
 
     def on_down_arrow_press(self):
-        if self.DataPult['ly-cor'] <= 50:
-            self.DataPult['ly-cor'] += 10
+        if self.optionscontrol:
+            if self.DataPult['ly-cor'] <= 50:
+                self.DataPult['ly-cor'] += 10
+        else:
+            self.DataPult['auto-dept'] = not self.DataPult['auto-dept']
 
     def on_left_arrow_press(self):
         if self.DataPult["lx-cor"] >= -50:
@@ -181,6 +213,7 @@ class MyController(Controller):
     def on_right_arrow_press(self):
         if self.DataPult['lx-cor'] <= 50:
             self.DataPult['lx-cor'] += 10
+    # функция обнуления (работает в обоих режимах)
 
     def on_playstation_button_press(self):
         self.DataPult['ly-cor'] = 0
@@ -259,7 +292,7 @@ class MainPost:
                 (-1 * J1_Val_Y) - J1_Val_X + J2_Val_X + 100)
             self.DataOutput['motor3'] = defense(
                 (-1 * J1_Val_Y) + J1_Val_X - J2_Val_X + 100)
-            
+
             self.DataOutput['motor4'] = defense(J2_Val_Y)
             self.DataOutput['motor5'] = defense(J2_Val_Y)
 
@@ -270,7 +303,7 @@ class MainPost:
             if self.telemetria:
                 print(self.DataInput)
             sleep(self.RateCommandOut)
-            
+
     def CommandLine(self):
         while True:
             command = input()
