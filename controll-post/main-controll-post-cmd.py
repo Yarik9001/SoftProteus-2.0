@@ -2,7 +2,6 @@ import socket
 import threading  # модуль для разделения на потоки
 import logging
 import coloredlogs
-import sys
 from datetime import datetime  # получение  времени
 from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
@@ -14,7 +13,7 @@ class MedaLogging:
         self.mylogs = logging.getLogger(__name__)
         self.mylogs.setLevel(logging.DEBUG)
         # обработчик записи в лог-файл
-        self.file = logging.FileHandler("Sample.log")
+        self.file = logging.FileHandler("Main.log")
         self.fileformat = logging.Formatter(
             "%(asctime)s:%(levelname)s:%(message)s")
         self.file.setLevel(logging.DEBUG)
@@ -60,14 +59,15 @@ class ServerMainPult:
     joystickrate - частота опроса джойстика 
     '''
 
-    def __init__(self):
+    def __init__(self, logger:MedaLogging):
         # инициализация атрибутов
         self.HOST = '192.168.1.100'
-        self.PORT = 1240
+        self.PORT = 1248
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.telemetria = False
         self.checkConnect = False
+        self.logger = logger
         # настройка сервера
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM,)
         self.server.bind((self.HOST, self.PORT))
@@ -75,8 +75,7 @@ class ServerMainPult:
         self.user_socket, self.address = self.server.accept()
         self.checkConnect = True
         
-        if self.telemetria:
-            print("ROV-Connected", self.user_socket)
+        self.logger.info(f'ROV-Connected - {self.user_socket}')
 
     def ReceiverProteus(self):
         if self.checkConnect:
@@ -84,19 +83,18 @@ class ServerMainPult:
             if len(data) == 0:
                 self.server.close()
                 self.checkConnect = False
-                if self.telemetria:
-                    print('ROV-disconnection', self.user_socket)
-                    return None
+                self.logger.info(f'ROV-disconnection - {self.user_socket}')
+                return None
             data = dict(literal_eval(str(data.decode('utf-8'))))
             if self.telemetria:
-                print("DataInput-", data)
+                self.logger.debug(f'DataInput - {str(data)}')
             return data
 
     def ControlProteus(self, data: dict):
         if self.checkConnect:
             self.user_socket.send(str(data).encode('utf-8'))
             if self.telemetria:
-                print('DataOutput-', data)
+                self.logger.debug(str(data))
 
 
 class MyController(Controller):
@@ -121,8 +119,7 @@ class MyController(Controller):
     '''
 
     def __init__(self):
-        Controller.__init__(self, interface="/dev/input/js0",
-                            connecting_using_ds4drv=False)
+        Controller.__init__(self, interface="/dev/input/js0", connecting_using_ds4drv=False)
         self.DataPult = {'j1-val-y': 0, 'j1-val-x': 0,
                          'j2-val-y': 0, 'j2-val-x': 0,
                          'ly-cor': 0, 'lx-cor': 0,
@@ -217,7 +214,7 @@ class MyController(Controller):
                 self.DataPult['ry-cor'] += 10
         else:
             if self.DataPult['servo-cam'] >= 10:
-                self.DataPult['sevo-cam'] -= 10
+                self.DataPult['servo-cam'] -= 10
 
     def on_square_press(self):
         if self.optionscontrol:
@@ -280,20 +277,21 @@ class MainPost:
         self.DataInput = {'time': None, 'dept': 0, 'volt': 0, 'azimut': 0}
         self.lodi = MedaLogging()
 
-        self.Server = ServerMainPult()  # поднимаем сервер
+        self.Server = ServerMainPult(self.lodi)  # поднимаем сервер
         self.lodi.info('ServerMainPult - init')
+        self.checkKILL = False
         self.Controllps4 = MyController()  # поднимаем контролеер
         self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
         self.RateCommandOut = 0.1
         self.telemetria = False
         self.correctCom = True
-        self.checkKILL = False
         self.lodi.info('MainPost-init')
 
     def RunController(self):
         self.lodi.info('MyController-listen')
         self.Controllps4.listen()
+
 
     def RunCommand(self):
         self.lodi.info('MainPost-RunCommand')
@@ -363,12 +361,21 @@ class MainPost:
             
             if self.telemetria:
                 self.lodi.debug('DataInput - {self.DataInput}')
+                
+            if self.checkKILL:
+                self.Server.server.close()
+                self.lodi.info('command-stop')
+                break
             
             sleep(self.RateCommandOut)
 
     def CommandLine(self):
         while True:
             command = input() # ввод с клавиатуры
+            if  command == 'stop':
+                self.checkKILL = True
+                self.Controllps4.cilled()
+                break
             
 
     def RunMain(self):
@@ -379,8 +386,6 @@ class MainPost:
         self.ThreadJoi.start()
         self.ThreadCom.start()
         self.ThreadComLine.start()
-
-
 
 
 if __name__ == '__main__':

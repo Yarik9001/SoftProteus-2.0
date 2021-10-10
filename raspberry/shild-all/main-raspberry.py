@@ -17,7 +17,7 @@ class ROVProteusClient:
     #Класс ответсвенный за связь с постом 
     def __init__(self):
         self.HOST = '192.168.1.100'
-        self.PORT = 1240
+        self.PORT = 1241
         self.telemetria = True
         self.checkConnect = True      
         # Настройки клиента 
@@ -203,14 +203,22 @@ class ReqiestSensor:
 class Command:
     def __init__(self):
         self.pwmcom = PwmControl()
+    
+    def safety(self, value):
+        if value < 0:
+            return 0
+        elif value > 180:
+            return 180
+        else:
+            return value
         
     def commanda(self, command):
-        command['motor0'] = (180 - command['motor0'] * 1.8) - 3
-        command['motor1'] = (180 - command['motor1'] * 1.8) - 3
-        command['motor2'] = (180 - command['motor2'] * 1.8) - 3
-        command['motor3'] = (180 - command['motor3'] * 1.8) - 3
-        command['motor4'] = (180 - command['motor4'] * 1.8) - 3
-        command['motor5'] = (180 - command['motor5'] * 1.8) - 3
+        command['motor0'] = self.safety((180 - command['motor0'] * 1.8) - 3)
+        command['motor1'] = self.safety((180 - command['motor1'] * 1.8) - 3)
+        command['motor2'] = self.safety((180 - command['motor2'] * 1.8) - 3)
+        command['motor3'] = self.safety((180 - command['motor3'] * 1.8) - 3)
+        command['motor4'] = self.safety((180 - command['motor4'] * 1.8) - 3)
+        command['motor5'] = self.safety((180 - command['motor5'] * 1.8) - 3)
         self.pwmcom.ControlMotor(command)
 
 class MainApparat:
@@ -236,7 +244,11 @@ class MainApparat:
         # сбор информации с датчиков 
         # отправка телеметрии на пост управления
         while True:
-            self.controllmass = self.client.ClientReceivin() # прием информации с поста управления 
+            if self.client.ClientReceivin() != None:
+                self.controllmass = self.client.ClientReceivin() # прием информации с поста управления 
+            else:
+                break
+            
             self.comandor.commanda(self.controllmass)
             self.client.ClientDispatch(self.sensor.reqiest()) # сбор информации с датчиков и отправка на пост управления 
 
