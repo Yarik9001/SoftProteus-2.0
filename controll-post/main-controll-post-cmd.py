@@ -2,6 +2,7 @@ import socket
 import threading  # модуль для разделения на потоки
 import logging
 import coloredlogs
+import os
 from datetime import datetime  # получение  времени
 from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
@@ -390,4 +391,5 @@ class MainPost:
 
 if __name__ == '__main__':
     post = MainPost()
+    os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
     post.RunMain()

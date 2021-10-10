@@ -3,6 +3,7 @@ import board
 import busio
 import logging
 import coloredlogs
+import os
 from time import sleep  # библиотека длязадержек
 from datetime import datetime  # получение текущего времени
 from configparser import ConfigParser  # чтание конфигов
@@ -333,4 +334,5 @@ class MainApparat:
 
 if __name__ == '__main__':
     apparat = MainApparat()
+    os.system('/bin/python3 /home/pi/SoftProteus-2.0/cam/udp_client.py')
     apparat.RunMainApparat()
