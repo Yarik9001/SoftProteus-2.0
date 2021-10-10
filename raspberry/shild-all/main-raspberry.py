@@ -127,8 +127,8 @@ class DeptAndTemp:
 class PwmControl:
     def __init__(self):
         # диапазон шим модуляции 
-        self.pwmMin = 1000
-        self.pwmMax = 1950
+        self.pwmMin = 900
+        self.pwmMax = 1800
         # коофиценты корректировки мощности на каждый мотор 
         self.CorDrk0 = 1
         self.CorDrk1 = 1

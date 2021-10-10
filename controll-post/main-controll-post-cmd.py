@@ -2,6 +2,7 @@ import socket
 import threading  # модуль для разделения на потоки
 import logging
 import coloredlogs
+import sys
 from datetime import datetime  # получение  времени
 from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
@@ -366,8 +367,11 @@ class MainPost:
 
     def CommandLine(self):
         while True:
-            command = input()
-            print(command)
+            command = input() # ввод с клавиатуры
+            if command == 'close':
+                self.Server.server.close()
+                sys.exit()
+                break
 
     def RunMain(self):
         ThreadJoi = threading.Thread(target=self.RunController)
