@@ -264,10 +264,11 @@ class PwmControl:
 
 class ReqiestSensor:
     # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
-    def __init__(self):
-        self.acp = Acp() # обект класса ацп 
-        self.mpu9250 = Compass() # обьект класса compass 
-        self.ms5837 = DeptAndTemp()
+    def __init__(self, logger):
+        self.logger = logger
+        self.acp = Acp(self.logger) # обект класса ацп 
+        self.mpu9250 = Compass(self.logger) # обьект класса compass 
+        self.ms5837 = DeptAndTemp(self.logger)
     
     def reqiest(self):
         # опрос датчиков; возвращает обьект класса словарь 
@@ -280,8 +281,9 @@ class ReqiestSensor:
         return massout
     
 class Command:
-    def __init__(self):
-        self.pwmcom = PwmControl()
+    def __init__(self, logger):
+        self.logger = logger
+        self.pwmcom = PwmControl(self.logger)
     
     def safety(self, value):
         if value < 0:
