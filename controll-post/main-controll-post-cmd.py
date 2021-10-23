@@ -334,7 +334,7 @@ class MainPost:
         '''Запуск скрипта отвечающего за трансляцию видео потока'''
         os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
 
-    def RunCommand(self):
+    def RunCommand(self, CmdMod = True):
         self.lodi.info('MainPost-RunCommand')
         '''
         Движение вперед - (1 вперед 2 вперед 3 назад 4 назад) 
@@ -402,6 +402,9 @@ class MainPost:
             # Запись принятого массива в лог 
             if self.telemetria:
                 self.lodi.debug('DataInput - {self.DataInput}')
+            # возможность вывода принимаемой информации в соммандную строку
+            if CmdMod:
+                print(self.DataInput)
             # Проверка условия убийства сокета 
             if self.checkKILL:
                 self.Server.server.close()
@@ -409,7 +412,7 @@ class MainPost:
                 break
 
             sleep(self.RateCommandOut)
-
+    '''
     def CommandLine(self):
         while True:
             command = input()  # ввод с клавиатуры
@@ -417,16 +420,17 @@ class MainPost:
                 self.checkKILL = True
                 self.Controllps4.cilled()
                 break
-
+    '''
+    
     def RunMain(self):
         self.ThreadJoi = threading.Thread(target=self.RunController)
         self.ThreadCom = threading.Thread(target=self.RunCommand)
-        self.ThreadComLine = threading.Thread(target=self.CommandLine)
+        #self.ThreadComLine = threading.Thread(target=self.CommandLine)
         self.ThreadCam = threading.Thread(target=self.RunCam)
 
         self.ThreadJoi.start()
         self.ThreadCom.start()
-        self.ThreadComLine.start()
+        #self.ThreadComLine.start()
         self.ThreadCam.start()
 
 
