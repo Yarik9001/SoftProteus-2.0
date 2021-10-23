@@ -10,6 +10,8 @@ from pyPS4Controller.controller import Controller
 
 
 class MedaLogging:
+    '''Класс отвечающий за логирование. Логи пишуться в файл, так же выводться в консоль'''
+
     def __init__(self):
         self.mylogs = logging.getLogger(__name__)
         self.mylogs.setLevel(logging.DEBUG)
@@ -34,18 +36,23 @@ class MedaLogging:
         self.mylogs.info('start-logging')
 
     def debug(self, message):
+        '''сообщения отладочного уровня'''
         self.mylogs.debug(message)
 
     def info(self, message):
+        '''сообщения информационного уровня'''
         self.mylogs.info(message)
 
     def warning(self, message):
+        '''не критичные ошибки'''
         self.mylogs.warning(message)
 
     def critical(self, message):
+        '''мы почти тонем'''
         self.mylogs.critical(message)
 
     def error(self, message):
+        '''ребята я сваливаю ща рванет !!!!'''
         self.mylogs.error(message)
 
 
@@ -60,25 +67,31 @@ class ServerMainPult:
     joystickrate - частота опроса джойстика 
     '''
 
-    def __init__(self, logger:MedaLogging):
+    def __init__(self, logger: MedaLogging, debug=False):
         # инициализация атрибутов
-        self.HOST = '192.168.1.100'
-        self.PORT = 1255
         self.JOYSTICKRATE = 0.1
         self.MotorPowerValue = 1
         self.telemetria = False
         self.checkConnect = False
         self.logger = logger
+        # выбор режима: Отладка\Запуск на реальном аппарате
+        if debug:
+            self.HOST = '127.0.0.1'
+            self.PORT = 1111
+        else:
+            self.HOST = '192.168.1.100'
+            self.PORT = 1255
         # настройка сервера
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM,)
         self.server.bind((self.HOST, self.PORT))
         self.server.listen(1)
         self.user_socket, self.address = self.server.accept()
         self.checkConnect = True
-        
+
         self.logger.info(f'ROV-Connected - {self.user_socket}')
 
     def ReceiverProteus(self):
+        '''Прием информации с аппарата'''
         if self.checkConnect:
             data = self.user_socket.recv(512)
             if len(data) == 0:
@@ -92,6 +105,7 @@ class ServerMainPult:
             return data
 
     def ControlProteus(self, data: dict):
+        '''Отправка массива на аппарат'''
         if self.checkConnect:
             self.user_socket.send(str(data).encode('utf-8'))
             if self.telemetria:
@@ -112,20 +126,16 @@ class MyController(Controller):
     кнопки - корректировка нулевого положения для противодействия течениям и прочей ериси 
 
     кнопка ps - обнуление корректировок 
-
-    Торцевые кнопки слева - управление манипулятором 
-
-    торцевые кнопки справа - управление поворотом камеры 
-
     '''
 
     def __init__(self):
-        Controller.__init__(self, interface="/dev/input/js0", connecting_using_ds4drv=False)
+        Controller.__init__(self, interface="/dev/input/js0",
+                            connecting_using_ds4drv=False)
         self.DataPult = {'j1-val-y': 0, 'j1-val-x': 0,
                          'j2-val-y': 0, 'j2-val-x': 0,
                          'ly-cor': 0, 'lx-cor': 0,
                          'ry-cor': 0, 'rx-cor': 0,
-                         'man': 0, 'servo-cam': 0,
+                         'man': 90, 'servo-cam': 90,
                          'led': False, 'auto-dept': False}
         self.log = True
         self.telemetria = False
@@ -138,70 +148,83 @@ class MyController(Controller):
 
     def transp(self, value):
         return -1 * (value // 328)
-    # блок опроса функций джойстиков
 
+    # блок опроса джойстиков
     def on_L3_up(self, value):
+        '''Движение вперед'''
         self.DataPult['j1-val-y'] = -1 * value
         if self.telemetria:
             print('forward')
 
     def on_L3_down(self, value):
+        '''Движение назад'''
         self.DataPult['j1-val-y'] = -1 * value
         if self.telemetria:
             print('back')
 
     def on_L3_y_at_rest(self):
+        '''Обнуление'''
         self.DataPult['j1-val-y'] = 0
         if self.telemetria:
             print('back')
 
     def on_L3_left(self, value):
+        '''Движение влево'''
         self.DataPult['j1-val-x'] = -1 * value
         if self.telemetria:
             print('left')
 
     def on_L3_right(self, value):
+        '''Движение вправо'''
         self.DataPult['j1-val-x'] = -1 * value
         if self.telemetria:
             print('right')
 
     def on_L3_x_at_rest(self):
+        '''Обнуление'''
         self.DataPult['j1-val-x'] = 0
         if self.telemetria:
             print('right')
 
     def on_R3_up(self, value):
+        '''Всплытие'''
         self.DataPult['j2-val-y'] = -1 * value
         if self.telemetria:
             print('up')
 
     def on_R3_down(self, value):
+        '''Идем на дно'''
         self.DataPult['j2-val-y'] = -1 * value
         if self.telemetria:
             print('down')
 
     def on_R3_y_at_rest(self):
+        '''Обнуление'''
         self.DataPult['j2-val-y'] = 0
         if self.telemetria:
             print('down')
 
     def on_R3_left(self, value):
+        '''Разворот налево'''
         self.DataPult['j2-val-x'] = -1 * value
         if self.telemetria:
             print('turn-left')
 
     def on_R3_right(self, value):
+        '''Разворот направо'''
         self.DataPult['j2-val-x'] = -1 * value
         if self.telemetria:
             print('turn-left')
 
     def on_R3_x_at_rest(self):
+        '''Обнуление'''
         self.DataPult['j2-val-x'] = 0
         if self.telemetria:
             print('turn-left')
-    # блок внесения корректировок с кнопок и управления светом, поворотом камеры, манипулятором
 
+    # блок внесения корректировок с кнопок и управления светом, поворотом камеры, манипулятором
     def on_x_press(self):
+        '''Нажатие на крестик'''
         if self.optionscontrol:
             if self.DataPult['ry-cor'] >= - 50:
                 self.DataPult['ry-cor'] -= 10
@@ -210,6 +233,7 @@ class MyController(Controller):
                 self.DataPult['servo-cam'] += 10
 
     def on_triangle_press(self):
+        '''Нажатие на триугольник'''
         if self.optionscontrol:
             if self.DataPult['ry-cor'] <= 50:
                 self.DataPult['ry-cor'] += 10
@@ -218,6 +242,7 @@ class MyController(Controller):
                 self.DataPult['servo-cam'] -= 10
 
     def on_square_press(self):
+        '''Нажатие на круг'''
         if self.optionscontrol:
             if self.DataPult['rx-cor'] <= 50:
                 self.DataPult['rx-cor'] += 10
@@ -226,6 +251,7 @@ class MyController(Controller):
                 self.DataPult['man'] += 10
 
     def on_circle_press(self):
+        '''Нажатие на квадрат'''
         if self.optionscontrol:
             if self.DataPult['rx-cor'] >= -50:
                 self.DataPult['rx-cor'] -= 10
@@ -248,19 +274,25 @@ class MyController(Controller):
             self.DataPult['auto-dept'] = not self.DataPult['auto-dept']
 
     def on_left_arrow_press(self):
-        if self.DataPult["lx-cor"] >= -50:
-            self.DataPult["lx-cor"] -= 10
+        if self.optionscontrol:
+            if self.DataPult["lx-cor"] >= -50:
+                self.DataPult["lx-cor"] -= 10
 
     def on_right_arrow_press(self):
-        if self.DataPult['lx-cor'] <= 50:
-            self.DataPult['lx-cor'] += 10
-    # функция обнуления (работает в обоих режимах)
+        if self.optionscontrol:
+            if self.DataPult['lx-cor'] <= 50:
+                self.DataPult['lx-cor'] += 10
 
     def on_playstation_button_press(self):
+        '''Отмена всех корректировок'''
         self.DataPult['ly-cor'] = 0
         self.DataPult['lx-cor'] = 0
         self.DataPult['rx-cor'] = 0
         self.DataPult['ry-cor'] = 0
+        '''Приведение всех значений в исходное положение'''
+        self.DataPult['auto-dept'] = False
+        self.DataPult['servo-cam'] = 90
+        self.DataPult['man'] = 90
 
 
 class MainPost:
@@ -269,31 +301,37 @@ class MainPost:
         self.DataOutput = {'time': None,  # Текущее время
                            'motorpowervalue': 1,  # мощность моторов
                            'led': False,  # управление светом
-                           'man': 0,  # Управление манипулятором
-                           'servo': 0,  # управление наклоном камеры
+                           'man': 90,  # Управление манипулятором
+                           'servo-cam': 90,  # управление наклоном камеры
                            'motor0': 0, 'motor1': 0,  # значения мощности на каждый мотор
                            'motor2': 0, 'motor3': 0,
                            'motor4': 0, 'motor5': 0}
         # словарик получаемый с аппарата
-        self.DataInput = {'time': None, 'dept': 0, 'volt': 0, 'azimut': 0}
+        self.DataInput = {'time': None, 'dept': None,
+                          'volt': None, 'azimut': None}
         self.lodi = MedaLogging()
 
         self.Server = ServerMainPult(self.lodi)  # поднимаем сервер
-        self.lodi.info('ServerMainPult - init')
-        self.checkKILL = False
+        #self.lodi.info('ServerMainPult - init')
+
         self.Controllps4 = MyController()  # поднимаем контролеер
-        self.lodi.info('MyController - init')
+        #self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
+
         self.RateCommandOut = 0.1
         self.telemetria = False
+        self.checkKILL = False
         self.correctCom = True
+
         self.lodi.info('MainPost-init')
 
     def RunController(self):
-        self.lodi.info('MyController-listen')
+        '''запуск на прослушивание контроллера ps4'''
+        # self.lodi.info('MyController-listen')
         self.Controllps4.listen()
 
     def RunCam(self):
+        '''Запуск скрипта отвечающего за трансляцию видео потока'''
         os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
 
     def RunCommand(self):
@@ -305,8 +343,6 @@ class MainPost:
         Движение лагом влево - (1 вперед 2 назад 3 назад 4 вперед)
         Движение вверх - (5 вниз 6 вниз)
         Движение вниз - (5 вверх 6 вверх)
-        Поворот направо 
-        Поворот налево 
         '''
         def transformation(value: int):
             # Функция перевода значений АЦП с джойстика в проценты
@@ -314,6 +350,7 @@ class MainPost:
             return value
 
         def defense(value: int):
+            '''Функция защитник от некорректных данных'''
             if value > 100:
                 value = 100
             elif value < 0:
@@ -321,12 +358,13 @@ class MainPost:
             return value
 
         while True:
+            # запрос данный из класса пульта (потенциально слабое место)
             data = self.DataPult
+
             # математика преобразования значений с джойстика в значения для моторов
-            
             if self.telemetria:
                 self.lodi.debug(f'DataPult - {data}')
-                
+
             if self.correctCom:
                 J1_Val_Y = transformation(data['j1-val-y']) + data['ly-cor']
                 J1_Val_X = transformation(data['j1-val-x']) + data['lx-cor']
@@ -346,7 +384,7 @@ class MainPost:
                 (-1 * J1_Val_Y) - J1_Val_X + J2_Val_X + 100)
             self.DataOutput['motor3'] = defense(
                 (-1 * J1_Val_Y) + J1_Val_X - J2_Val_X + 100)
-
+            # Подготовка массива для отправки на аппарат
             self.DataOutput['motor4'] = defense(J2_Val_Y)
             self.DataOutput['motor5'] = defense(J2_Val_Y)
 
@@ -355,37 +393,36 @@ class MainPost:
             self.DataOutput['led'] = data['led']
             self.DataOutput['man'] = data['man']
             self.DataOutput['servo'] = data['servo-cam']
-            
+            # Запись управляющего массива в лог 
             if self.telemetria:
                 self.lodi.debug('DataOutput - {self.DataOutput}')
-                
+            # отправка и прием сообщений
             self.Server.ControlProteus(self.DataOutput)
             self.DataInput = self.Server.ReceiverProteus()
-            
+            # Запись принятого массива в лог 
             if self.telemetria:
                 self.lodi.debug('DataInput - {self.DataInput}')
-                
+            # Проверка условия убийства сокета 
             if self.checkKILL:
                 self.Server.server.close()
                 self.lodi.info('command-stop')
                 break
-            
+
             sleep(self.RateCommandOut)
 
     def CommandLine(self):
         while True:
-            command = input() # ввод с клавиатуры
-            if  command == 'stop':
+            command = input()  # ввод с клавиатуры
+            if command == 'stop':
                 self.checkKILL = True
                 self.Controllps4.cilled()
                 break
-            
 
     def RunMain(self):
         self.ThreadJoi = threading.Thread(target=self.RunController)
         self.ThreadCom = threading.Thread(target=self.RunCommand)
         self.ThreadComLine = threading.Thread(target=self.CommandLine)
-        self.ThreadCam  =threading.Thread(target=self.RunCam)
+        self.ThreadCam = threading.Thread(target=self.RunCam)
 
         self.ThreadJoi.start()
         self.ThreadCom.start()
