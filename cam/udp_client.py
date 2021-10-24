@@ -4,9 +4,15 @@ import math
 import pickle
 import sys
 
+DEBUG = True
+
 max_length = 65000
-host = '192.168.1.100'
-port = 5001
+if DEBUG:
+    host = '127.0.0.1'
+    port = 2222
+else:
+    host = '192.168.1.100'
+    port = 5001
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -27,12 +33,12 @@ while ret:
         if buffer_size > max_length:
             num_of_packs = math.ceil(buffer_size/max_length)
 
-        frame_info = {"packs":num_of_packs}
+        frame_info = {"packs": num_of_packs}
 
         # send the number of packs to be expected
         print("Number of packs:", num_of_packs)
         sock.sendto(pickle.dumps(frame_info), (host, port))
-        
+
         left = 0
         right = max_length
 
@@ -47,7 +53,7 @@ while ret:
 
             # send the frames accordingly
             sock.sendto(data, (host, port))
-    
+
     ret, frame = cap.read()
 
 print("done")

@@ -3,9 +3,17 @@ import socket
 import pickle
 import numpy as np
 
-host = "192.168.1.100"
-port = 5001
 max_length = 65540
+
+DEBUG = True
+
+max_length = 65000
+if DEBUG:
+    host = '127.0.0.1'
+    port = 2222
+else:
+    host = '192.168.1.100'
+    port = 5001
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((host, port))

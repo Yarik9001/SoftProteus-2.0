@@ -8,6 +8,7 @@ from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
 from pyPS4Controller.controller import Controller
 
+DEBUG = True
 
 class MedaLogging:
     '''Класс отвечающий за логирование. Логи пишуться в файл, так же выводться в консоль'''
@@ -77,7 +78,7 @@ class ServerMainPult:
         # выбор режима: Отладка\Запуск на реальном аппарате
         if debug:
             self.HOST = '127.0.0.1'
-            self.PORT = 1111
+            self.PORT = 1112
         else:
             self.HOST = '192.168.1.100'
             self.PORT = 1255
@@ -311,14 +312,14 @@ class MainPost:
                           'volt': None, 'azimut': None}
         self.lodi = MedaLogging()
 
-        self.Server = ServerMainPult(self.lodi)  # поднимаем сервер
+        self.Server = ServerMainPult(self.lodi, DEBUG)  # поднимаем сервер
         #self.lodi.info('ServerMainPult - init')
 
         self.Controllps4 = MyController()  # поднимаем контролеер
         #self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
 
-        self.RateCommandOut = 0.1
+        self.RateCommandOut = 0.2
         self.telemetria = False
         self.checkKILL = False
         self.correctCom = True
