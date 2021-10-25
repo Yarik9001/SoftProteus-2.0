@@ -54,7 +54,7 @@ class ROVProteusClient:
     def __init__(self, logger: MedaLogging):
         self.logger = logger
         self.HOST = '127.0.0.1'
-        self.PORT = 1112
+        self.PORT = 1117
         self.telemetria = True
         self.checkConnect = True
         # Настройки клиента
@@ -230,8 +230,7 @@ class MainApparat:
         os.system('/home/pi/SoftProteus-2.0/cam/udp_client.py')
 
     def RunMainApparat(self):
-        self.ThreadCam = Thread(target=self.RunCam)
-        self.ThreadCam.start()
+        os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_client.py')
         # прием информации с поста управления
         # отработка по принятой информации
         # сбор информации с датчиков

@@ -9,7 +9,7 @@ DEBUG = True
 max_length = 65000
 if DEBUG:
     host = '127.0.0.1'
-    port = 2222
+    port = 2224
 else:
     host = '192.168.1.100'
     port = 5001

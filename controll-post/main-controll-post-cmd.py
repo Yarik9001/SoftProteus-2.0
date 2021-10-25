@@ -78,7 +78,7 @@ class ServerMainPult:
         # выбор режима: Отладка\Запуск на реальном аппарате
         if debug:
             self.HOST = '127.0.0.1'
-            self.PORT = 1112
+            self.PORT = 1117
         else:
             self.HOST = '192.168.1.100'
             self.PORT = 1255
@@ -427,12 +427,11 @@ class MainPost:
         self.ThreadJoi = threading.Thread(target=self.RunController)
         self.ThreadCom = threading.Thread(target=self.RunCommand)
         #self.ThreadComLine = threading.Thread(target=self.CommandLine)
-        self.ThreadCam = threading.Thread(target=self.RunCam)
 
         self.ThreadJoi.start()
         self.ThreadCom.start()
         #self.ThreadComLine.start()
-        self.ThreadCam.start()
+        os.system('/bin/python3 /home/proteus/SoftProteus-2.0/cam/udp_server.py')
 
 
 if __name__ == '__main__':
