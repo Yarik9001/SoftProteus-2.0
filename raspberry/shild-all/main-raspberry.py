@@ -6,7 +6,6 @@ import coloredlogs
 import os
 from time import sleep  # библиотека длязадержек
 from datetime import datetime  # получение текущего времени
-from configparser import ConfigParser  # чтание конфигов
 from ast import literal_eval
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
@@ -22,7 +21,9 @@ class MedaLogging:
         self.mylogs = logging.getLogger(__name__)
         self.mylogs.setLevel(logging.DEBUG)
         # обработчик записи в лог-файл
-        self.file = logging.FileHandler("Main.log")
+        name = 'log/controll-post/' + '-'.join('-'.join('-'.join(str(datetime.now()
+                                              ).split()).split('.')).split(':')) + '.log'
+        self.file = logging.FileHandler(name)
         self.fileformat = logging.Formatter(
             "%(asctime)s:%(levelname)s:%(message)s")
         self.file.setLevel(logging.DEBUG)
@@ -101,19 +102,20 @@ class Acp:
             self.i2c = busio.I2C(board.SCL, board.SDA)
             self.ads13 = ADS.ADS1115(self.i2c)
             self.adc46 = ADS.ADS1115(self.i2c, address=0x49)
-            a1 = AnalogIn(self.ads13, ADS.P0)
-            a2 = AnalogIn(self.ads13, ADS.P1)
-            a3 = AnalogIn(self.ads13, ADS.P2)
+            a0 = AnalogIn(self.ads13, ADS.P0)
+            a1 = AnalogIn(self.ads13, ADS.P1)
+            a2 = AnalogIn(self.ads13, ADS.P2)
+            a3 = AnalogIn(self.adc46, ADS.P3)
             a4 = AnalogIn(self.adc46, ADS.P0)
             a5 = AnalogIn(self.adc46, ADS.P1)
-            a6 = AnalogIn(self.adc46, ADS.P2)
+            
 
-            self.CorNulA1 = a1.value
-            self.CorNulA2 = a2.value
-            self.CorNulA3 = a3.value
-            self.CorNulA4 = a4.value
-            self.CorNulA5 = a5.value
-            self.CorNulA6 = a6.value
+            self.CorNulA1 = a0.value
+            self.CorNulA2 = a1.value
+            self.CorNulA3 = a2.value
+            self.CorNulA4 = a3.value
+            self.CorNulA5 = a4.value
+            self.CorNulA6 = a5.value
             self.logger.info('ADC1115-init')
         except:
             self.logger.critical('NO-ADC1115')
@@ -123,25 +125,28 @@ class Acp:
     def ReqestAmper(self):
         try:
             #Функция опроса датчиков тока 
-            a1 = AnalogIn(self.ads13, ADS.P0)
-            a2 = AnalogIn(self.ads13, ADS.P1)
-            a3 = AnalogIn(self.ads13, ADS.P2)
+            a0 = AnalogIn(self.ads13, ADS.P0)
+            a1 = AnalogIn(self.ads13, ADS.P1)
+            a2 = AnalogIn(self.ads13, ADS.P2)
+            a3 = AnalogIn(self.ads13, ADS.P3)
             a4 = AnalogIn(self.adc46, ADS.P0)
             a5 = AnalogIn(self.adc46, ADS.P1)
-            a6 = AnalogIn(self.adc46, ADS.P2)
+            v = AnalogIn(self.adc46, ADS.P2)
             # TODO  матан для перевода значений - отсылается уже в амперах
             self.MassOut['a0'] = round(
-                (a1.value - self.CorNulA1) * 0.00057321919, 3)
+                (a0.value - self.CorNulA1) * 0.00057321919, 3)
             self.MassOut['a1'] = round(
-                (a2.value - self.CorNulA2) * 0.00057321919, 3)
+                (a1.value - self.CorNulA2) * 0.00057321919, 3)
             self.MassOut['a2'] = round(
-                (a3.value - self.CorNulA3) * 0.00057321919, 3)
+                (a2.value - self.CorNulA3) * 0.00057321919, 3)
             self.MassOut['a3'] = round(
-                (a4.value - self.CorNulA4) * 0.00057321919, 3)
+                (a3.value - self.CorNulA4) * 0.00057321919, 3)
             self.MassOut['a4'] = round(
-                (a5.value - self.CorNulA5) * 0.00057321919, 3)
+                (a4.value - self.CorNulA5) * 0.00057321919, 3)
             self.MassOut['a5'] = round(
-                (a6.value - self.CorNulA6) * 0.00057321919, 3)
+                (a5.value - self.CorNulA6) * 0.00057321919, 3)
+            
+            self.MassOut['v'] = round(v.voltage * 5, 3)
             # возвращает словарь с значениями амрепметра нумерация с нуля
             return self.MassOut
         except:
@@ -191,8 +196,8 @@ class DeptAndTemp:
         # опрос датчика давления
         if self.sensor.read():
             massout = {}
-            massout['dept'] = self.sensor.depth()
-            massout['term'] = self.sensor.temperature()
+            massout['dept'] = round(self.sensor.depth(), 3)
+            massout['term'] = round(self.sensor.temperature(), 3)
             return massout
         else:
             self.logger.critical('NO-SENSOR-DEPT')
@@ -231,6 +236,15 @@ class PwmControl:
         self.drk4.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.drk5 = self.kit.servo[5]
         self.drk5.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        # взаимодействие с манипулятором 
+        self.man = self.kit.servo[6]
+        self.man.angle = 0
+        # взаимодействие с сервоприводом камеры 
+        self.servoCam = self.kit.servo[7]
+        self.servoCam.angle = 90
+        # взаимодействие с светильником 
+        self.led = self.kit.servo[8]
+        self.led.angle = 0
         # инициализация моторов 
         self.drk0.angle = 180
         self.drk1.angle = 180
@@ -262,6 +276,16 @@ class PwmControl:
         self.drk3.angle = mass['motor3']
         self.drk4.angle = mass['motor4']
         self.drk5.angle = mass['motor5']
+        
+        self.man.angle = mass['man']
+        self.servoCam = mass['servoCam']
+        
+        if mass['led']:
+            self.led.angle = 180 
+        else:
+            self.led.angle = 0
+            
+        
 
 class ReqiestSensor:
     # класс-адаптер обьеденяющий в себе сбор информации с всех сенсоров 
@@ -321,12 +345,9 @@ class MainApparat:
         self.client = ROVProteusClient(self.logger)
         self.sensor = ReqiestSensor(self.logger)
         self.comandor = Command(self.logger)
-    def RunCam(self):
-        os.system('/home/pi/SoftProteus-2.0/cam/udp_client.py')
+        
     
     def RunMainApparat(self):
-        self.ThreadCam = Thread(target=self.RunCam)
-        self.ThreadCam.start()
         # прием информации с поста управления 
         # отработка по принятой информации 
         # сбор информации с датчиков 

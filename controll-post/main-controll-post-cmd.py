@@ -17,7 +17,9 @@ class MedaLogging:
         self.mylogs = logging.getLogger(__name__)
         self.mylogs.setLevel(logging.DEBUG)
         # обработчик записи в лог-файл
-        self.file = logging.FileHandler("Main.log")
+        name = 'log/controll-post/' + '-'.join('-'.join('-'.join(str(datetime.now()
+                                              ).split()).split('.')).split(':')) + '.log'
+        self.file = logging.FileHandler(name)
         self.fileformat = logging.Formatter(
             "%(asctime)s:%(levelname)s:%(message)s")
         self.file.setLevel(logging.DEBUG)
@@ -81,7 +83,7 @@ class ServerMainPult:
             self.PORT = 1117
         else:
             self.HOST = '192.168.1.100'
-            self.PORT = 1255
+            self.PORT = 1256
         # настройка сервера
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM,)
         self.server.bind((self.HOST, self.PORT))
@@ -153,73 +155,73 @@ class MyController(Controller):
     # блок опроса джойстиков
     def on_L3_up(self, value):
         '''Движение вперед'''
-        self.DataPult['j1-val-y'] = -1 * value
+        self.DataPult['j2-val-y'] = -1 * value
         if self.telemetria:
             print('forward')
 
     def on_L3_down(self, value):
         '''Движение назад'''
-        self.DataPult['j1-val-y'] = -1 * value
+        self.DataPult['j2-val-y'] = -1 * value
         if self.telemetria:
             print('back')
 
     def on_L3_y_at_rest(self):
         '''Обнуление'''
-        self.DataPult['j1-val-y'] = 0
+        self.DataPult['j2-val-y'] = 0
         if self.telemetria:
             print('back')
 
     def on_L3_left(self, value):
         '''Движение влево'''
-        self.DataPult['j1-val-x'] = -1 * value
+        self.DataPult['j2-val-x'] = -1 * value
         if self.telemetria:
             print('left')
 
     def on_L3_right(self, value):
         '''Движение вправо'''
-        self.DataPult['j1-val-x'] = -1 * value
+        self.DataPult['j2-val-x'] = -1 * value
         if self.telemetria:
             print('right')
 
     def on_L3_x_at_rest(self):
         '''Обнуление'''
-        self.DataPult['j1-val-x'] = 0
+        self.DataPult['j2-val-x'] = 0
         if self.telemetria:
             print('right')
 
     def on_R3_up(self, value):
         '''Всплытие'''
-        self.DataPult['j2-val-y'] = -1 * value
+        self.DataPult['j1-val-y'] = -1 * value
         if self.telemetria:
             print('up')
 
     def on_R3_down(self, value):
         '''Идем на дно'''
-        self.DataPult['j2-val-y'] = -1 * value
+        self.DataPult['j1-val-y'] = -1 * value
         if self.telemetria:
             print('down')
 
     def on_R3_y_at_rest(self):
         '''Обнуление'''
-        self.DataPult['j2-val-y'] = 0
+        self.DataPult['j1-val-y'] = 0
         if self.telemetria:
             print('down')
 
     def on_R3_left(self, value):
         '''Разворот налево'''
-        self.DataPult['j2-val-x'] = -1 * value
+        self.DataPult['j1-val-x'] = -1 * value
         if self.telemetria:
             print('turn-left')
 
     def on_R3_right(self, value):
         '''Разворот направо'''
-        self.DataPult['j2-val-x'] = -1 * value
+        self.DataPult['j1-val-x'] = -1 * value
         if self.telemetria:
             print('turn-left')
 
     def on_R3_x_at_rest(self):
         '''Обнуление'''
-        self.DataPult['j2-val-x'] = 0
+        self.DataPult['j1-val-x'] = 0
         if self.telemetria:
             print('turn-left')
 
@@ -294,6 +296,7 @@ class MyController(Controller):
         self.DataPult['auto-dept'] = False
         self.DataPult['servo-cam'] = 90
         self.DataPult['man'] = 90
+        self.DataPult['led'] = False
 
 
 class MainPost:
@@ -319,7 +322,7 @@ class MainPost:
         #self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
 
-        self.RateCommandOut = 0.2
+        self.RateCommandOut = 0.1
         self.telemetria = False
         self.checkKILL = False
         self.correctCom = True
