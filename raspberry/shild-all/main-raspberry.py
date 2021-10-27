@@ -23,6 +23,8 @@ class MedaLogging:
         # обработчик записи в лог-файл
         name = 'log/controll-post/' + '-'.join('-'.join('-'.join(str(datetime.now()
                                               ).split()).split('.')).split(':')) + '.log'
+        name = 'main.log'
+        
         self.file = logging.FileHandler(name)
         self.fileformat = logging.Formatter(
             "%(asctime)s:%(levelname)s:%(message)s")
