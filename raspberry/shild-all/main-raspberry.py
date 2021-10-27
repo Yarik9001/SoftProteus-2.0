@@ -287,7 +287,7 @@ class PwmControl:
         
         self.man.angle = mass['man']
         
-        self.servoCam = mass['servoCam']
+        self.servoCam.angle = mass['servoCam']
         
         if mass['led']:
             self.led.angle = 180 
