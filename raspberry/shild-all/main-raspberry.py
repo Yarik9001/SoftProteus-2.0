@@ -238,9 +238,11 @@ class PwmControl:
         self.drk5.set_pulse_width_range(self.pwmMin, self.pwmMax)
         # взаимодействие с манипулятором 
         self.man = self.kit.servo[6]
+        self.man.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.man.angle = 0
         # взаимодействие с сервоприводом камеры 
         self.servoCam = self.kit.servo[7]
+        self.servoCam.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.servoCam.angle = 90
         # взаимодействие с светильником 
         self.led = self.kit.servo[8]
@@ -278,6 +280,7 @@ class PwmControl:
         self.drk5.angle = mass['motor5']
         
         self.man.angle = mass['man']
+        
         self.servoCam = mass['servoCam']
         
         if mass['led']:

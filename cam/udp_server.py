@@ -5,7 +5,7 @@ import numpy as np
 
 max_length = 65540
 
-DEBUG = True
+DEBUG = False
 
 max_length = 65000
 if DEBUG:
@@ -13,7 +13,7 @@ if DEBUG:
     port = 2224
 else:
     host = '192.168.1.100'
-    port = 5002
+    port = 5001
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((host, port))

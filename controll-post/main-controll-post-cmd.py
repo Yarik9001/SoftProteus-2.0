@@ -8,7 +8,7 @@ from time import sleep  # сон
 from ast import literal_eval  # модуль для перевода строки в словарик
 from pyPS4Controller.controller import Controller
 
-DEBUG = True
+DEBUG = False
 
 class MedaLogging:
     '''Класс отвечающий за логирование. Логи пишуться в файл, так же выводться в консоль'''
@@ -72,7 +72,7 @@ class ServerMainPult:
 
     def __init__(self, logger: MedaLogging, debug=False):
         # инициализация атрибутов
-        self.JOYSTICKRATE = 0.1
+        self.JOYSTICKRATE = 0.2
         self.MotorPowerValue = 1
         self.telemetria = False
         self.checkConnect = False
@@ -83,7 +83,9 @@ class ServerMainPult:
             self.PORT = 1112
         else:
             self.HOST = '192.168.1.100'
-            self.PORT = 1256
+            self.PORT = 1210
+            
+            
         # настройка сервера
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM,)
         self.server.bind((self.HOST, self.PORT))
@@ -138,7 +140,7 @@ class MyController(Controller):
                          'j2-val-y': 0, 'j2-val-x': 0,
                          'ly-cor': 0, 'lx-cor': 0,
                          'ry-cor': 0, 'rx-cor': 0,
-                         'man': 90, 'servo-cam': 90,
+                         'man': 90, 'servoCam': 90,
                          'led': False, 'auto-dept': False}
         self.log = True
         self.telemetria = False
@@ -232,8 +234,8 @@ class MyController(Controller):
             if self.DataPult['ry-cor'] >= - 50:
                 self.DataPult['ry-cor'] -= 10
         else:
-            if self.DataPult['servo-cam'] <= 170:
-                self.DataPult['servo-cam'] += 10
+            if self.DataPult['servoCam'] <= 170:
+                self.DataPult['servoCam'] += 10
 
     def on_triangle_press(self):
         '''Нажатие на триугольник'''
@@ -241,8 +243,8 @@ class MyController(Controller):
             if self.DataPult['ry-cor'] <= 50:
                 self.DataPult['ry-cor'] += 10
         else:
-            if self.DataPult['servo-cam'] >= 10:
-                self.DataPult['servo-cam'] -= 10
+            if self.DataPult['servoCam'] >= 10:
+                self.DataPult['servoCam'] -= 10
 
     def on_square_press(self):
         '''Нажатие на круг'''
@@ -294,7 +296,7 @@ class MyController(Controller):
         self.DataPult['ry-cor'] = 0
         '''Приведение всех значений в исходное положение'''
         self.DataPult['auto-dept'] = False
-        self.DataPult['servo-cam'] = 90
+        self.DataPult['servoCam'] = 90
         self.DataPult['man'] = 90
         self.DataPult['led'] = False
 
@@ -306,7 +308,7 @@ class MainPost:
                            'motorpowervalue': 1,  # мощность моторов
                            'led': False,  # управление светом
                            'man': 90,  # Управление манипулятором
-                           'servo-cam': 90,  # управление наклоном камеры
+                           'servoCam': 90,  # управление наклоном камеры
                            'motor0': 0, 'motor1': 0,  # значения мощности на каждый мотор
                            'motor2': 0, 'motor3': 0,
                            'motor4': 0, 'motor5': 0}
@@ -322,7 +324,7 @@ class MainPost:
         #self.lodi.info('MyController - init')
         self.DataPult = self.Controllps4.DataPult
 
-        self.RateCommandOut = 0.1
+        self.RateCommandOut = 0.2
         self.telemetria = False
         self.checkKILL = False
         self.correctCom = True
@@ -396,7 +398,7 @@ class MainPost:
 
             self.DataOutput['led'] = data['led']
             self.DataOutput['man'] = data['man']
-            self.DataOutput['servo'] = data['servo-cam']
+            self.DataOutput['servoCam'] = data['servoCam']
             # Запись управляющего массива в лог 
             if self.telemetria:
                 self.lodi.debug('DataOutput - {self.DataOutput}')

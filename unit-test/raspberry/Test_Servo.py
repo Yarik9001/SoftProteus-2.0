@@ -1,4 +1,4 @@
-
+'''
 # SPDX-License-Identifier: MIT
 
 # This example moves a servo its full range (180 degrees by default) and then back.
@@ -40,3 +40,22 @@ for i in range(180):
 for i in range(180):
     servo7.angle = 180 - i
 pca.deinit()
+'''
+
+import time
+from adafruit_servokit import ServoKit
+
+# Set channels to the number of servo channels on your kit.
+# 8 for FeatherWing, 16 for Shield/HAT/Bonnet.
+kit = ServoKit(channels=16)
+
+canal = 7
+
+
+kit.servo[canal].angle = 180
+time.sleep(5)
+kit.servo[canal].angle = 0
+time.sleep(5)
+kit.servo[canal].angle = 90
+print('final')
+
