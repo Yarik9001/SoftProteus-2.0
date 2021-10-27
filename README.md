@@ -1,5 +1,11 @@
 # SoftProteus-2.0
 
-esptool.py --chip auto --port /dev/ttyUSB0 -b 460800 --before=default_reset \
---after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 2MB 0x0000 \
-/home/pi/adafruit-circuitpython-espressif_saola_1_wrover-en_US-6.3.0.bin
+# Описание движения аппарата (надо уточнить)
+Движение вперед - (1 вперед 2 вперед 3 назад 4 назад) 
+Движение назад - (1 назад 2 назад 3 вперед 4 вперед)
+Движение лагом вправо - (1 назад 2 вперед 3 вперед 4 назад)
+Движение лагом влево - (1 вперед 2 назад 3 назад 4 вперед)
+Движение вверх - (5 вниз 6 вниз)
+Движение вниз - (5 вверх 6 вверх)
+Разворот налево - 
+Разворот направо - 

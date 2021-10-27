@@ -46,7 +46,7 @@ while True:
 
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
             frame = cv2.flip(frame, 1)
-            frame = cv2.resize(frame,(1024,768))
+            frame = cv2.resize(frame,(1280,768))
             
             if frame is not None and type(frame) == np.ndarray:
                 cv2.imshow("Stream", frame)
