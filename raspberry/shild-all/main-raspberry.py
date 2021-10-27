@@ -63,7 +63,7 @@ class ROVProteusClient:
     def __init__(self, logger:MedaLogging):
         self.logger = logger
         self.HOST = '192.168.1.100'
-        self.PORT = 1253
+        self.PORT = 1210
         self.telemetria = True
         self.checkConnect = True      
         # Настройки клиента 
@@ -236,17 +236,21 @@ class PwmControl:
         self.drk4.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.drk5 = self.kit.servo[5]
         self.drk5.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        
         # взаимодействие с манипулятором 
         self.man = self.kit.servo[6]
         self.man.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.man.angle = 0
+        
         # взаимодействие с сервоприводом камеры 
         self.servoCam = self.kit.servo[7]
-        self.servoCam.set_pulse_width_range(self.pwmMin, self.pwmMax)
+        #self.servoCam.set_pulse_width_range(self.pwmMin, self.pwmMax)
         self.servoCam.angle = 90
+        
         # взаимодействие с светильником 
         self.led = self.kit.servo[8]
         self.led.angle = 0
+        
         # инициализация моторов 
         self.drk0.angle = 180
         self.drk1.angle = 180
