@@ -83,7 +83,7 @@ class ServerMainPult:
             self.PORT = 1112
         else:
             self.HOST = '192.168.1.100'
-            self.PORT = 1215
+            self.PORT = 1217
             
             
         # настройка сервера
@@ -175,13 +175,13 @@ class MyController(Controller):
 
     def on_L3_left(self, value):
         '''Движение влево'''
-        self.DataPult['j2-val-x'] = -1 * value
+        self.DataPult['j2-val-x'] =  value
         if self.telemetria:
             print('left')
 
     def on_L3_right(self, value):
         '''Движение вправо'''
-        self.DataPult['j2-val-x'] = -1 * value
+        self.DataPult['j2-val-x'] =  value
         if self.telemetria:
             print('right')
 
@@ -193,13 +193,13 @@ class MyController(Controller):
 
     def on_R3_up(self, value):
         '''Всплытие'''
-        self.DataPult['j1-val-y'] = -1 * value
+        self.DataPult['j1-val-y'] =  value
         if self.telemetria:
             print('up')
 
     def on_R3_down(self, value):
         '''Идем на дно'''
-        self.DataPult['j1-val-y'] = -1 * value
+        self.DataPult['j1-val-y'] =  value
         if self.telemetria:
             print('down')
 
@@ -211,13 +211,13 @@ class MyController(Controller):
 
     def on_R3_left(self, value):
         '''Разворот налево'''
-        self.DataPult['j1-val-x'] = -1 * value
+        self.DataPult['j1-val-x'] =  value
         if self.telemetria:
             print('turn-left')
 
     def on_R3_right(self, value):
         '''Разворот направо'''
-        self.DataPult['j1-val-x'] = -1 * value
+        self.DataPult['j1-val-x'] =  value
         if self.telemetria:
             print('turn-left')
 
@@ -253,7 +253,7 @@ class MyController(Controller):
                 self.DataPult['rx-cor'] += 10
         else:
             if self.DataPult['man'] <= 170:
-                self.DataPult['man'] += 10
+                self.DataPult['man'] += 20
 
     def on_circle_press(self):
         '''Нажатие на квадрат'''
@@ -262,7 +262,7 @@ class MyController(Controller):
                 self.DataPult['rx-cor'] -= 10
         else:
             if self.DataPult['man'] >= 10:
-                self.DataPult['man'] -= 10
+                self.DataPult['man'] -= 20
 
     def on_up_arrow_press(self):
         if self.optionscontrol:
