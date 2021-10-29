@@ -83,7 +83,7 @@ class ServerMainPult:
             self.PORT = 1112
         else:
             self.HOST = '192.168.1.100'
-            self.PORT = 1217
+            self.PORT = 1233
             
             
         # настройка сервера
@@ -145,6 +145,7 @@ class MyController(Controller):
         self.log = True
         self.telemetria = False
         self.optionscontrol = False
+        self.nitro = False
     # переключение режимов корректировок
 
     def on_options_press(self):
@@ -156,14 +157,14 @@ class MyController(Controller):
 
     # блок опроса джойстиков
     def on_L3_up(self, value):
-        '''Движение вперед'''
-        self.DataPult['j2-val-y'] = -1 * value
+        '''погружение'''
+        self.DataPult['j2-val-y'] =  value
         if self.telemetria:
             print('forward')
 
     def on_L3_down(self, value):
-        '''Движение назад'''
-        self.DataPult['j2-val-y'] = -1 * value
+        '''всплытие'''
+        self.DataPult['j2-val-y'] =  value
         if self.telemetria:
             print('back')
 
@@ -174,14 +175,20 @@ class MyController(Controller):
             print('back')
 
     def on_L3_left(self, value):
-        '''Движение влево'''
-        self.DataPult['j2-val-x'] =  value
+        '''Движение влево (лаг) '''
+        if self.nitro:
+            self.DataPult['j2-val-x'] =   value 
+        else:
+            self.DataPult['j2-val-x'] = value // 2
         if self.telemetria:
             print('left')
 
     def on_L3_right(self, value):
-        '''Движение вправо'''
-        self.DataPult['j2-val-x'] =  value
+        '''Движение вправо (лаг) '''
+        if self.nitro:
+            self.DataPult['j2-val-x'] =   value 
+        else:
+            self.DataPult['j2-val-x'] = value // 2
         if self.telemetria:
             print('right')
 
@@ -192,14 +199,20 @@ class MyController(Controller):
             print('right')
 
     def on_R3_up(self, value):
-        '''Всплытие'''
-        self.DataPult['j1-val-y'] =  value
+        '''Вперед'''
+        if self.nitro:
+            self.DataPult['j1-val-y'] = -1*  value 
+        else:
+            self.DataPult['j1-val-y'] = -1 * value // 2
         if self.telemetria:
             print('up')
 
     def on_R3_down(self, value):
-        '''Идем на дно'''
-        self.DataPult['j1-val-y'] =  value
+        '''назад'''
+        if self.nitro:
+            self.DataPult['j1-val-y'] = -1* value 
+        else:
+            self.DataPult['j1-val-y'] = -1 * value // 2
         if self.telemetria:
             print('down')
 
@@ -211,13 +224,19 @@ class MyController(Controller):
 
     def on_R3_left(self, value):
         '''Разворот налево'''
-        self.DataPult['j1-val-x'] =  value
+        if self.nitro:
+            self.DataPult['j1-val-x'] =  value // 3
+        else:
+            self.DataPult['j1-val-x'] = value // 6
         if self.telemetria:
             print('turn-left')
 
     def on_R3_right(self, value):
         '''Разворот направо'''
-        self.DataPult['j1-val-x'] =  value
+        if self.nitro:
+            self.DataPult['j1-val-x'] =  value // 3
+        else:
+            self.DataPult['j1-val-x'] = value // 6
         if self.telemetria:
             print('turn-left')
 
@@ -252,7 +271,7 @@ class MyController(Controller):
             if self.DataPult['rx-cor'] <= 50:
                 self.DataPult['rx-cor'] += 10
         else:
-            if self.DataPult['man'] <= 170:
+            if self.DataPult['man'] <= 150:
                 self.DataPult['man'] += 20
 
     def on_circle_press(self):
@@ -261,7 +280,7 @@ class MyController(Controller):
             if self.DataPult['rx-cor'] >= -50:
                 self.DataPult['rx-cor'] -= 10
         else:
-            if self.DataPult['man'] >= 10:
+            if self.DataPult['man'] >= 40:
                 self.DataPult['man'] -= 20
 
     def on_up_arrow_press(self):
@@ -282,6 +301,8 @@ class MyController(Controller):
         if self.optionscontrol:
             if self.DataPult["lx-cor"] >= -50:
                 self.DataPult["lx-cor"] -= 10
+        else:
+            self.nitro = not self.nitro
 
     def on_right_arrow_press(self):
         if self.optionscontrol:
@@ -299,6 +320,7 @@ class MyController(Controller):
         self.DataPult['servoCam'] = 90
         self.DataPult['man'] = 90
         self.DataPult['led'] = False
+        self.nitro = False
 
 
 class MainPost:
