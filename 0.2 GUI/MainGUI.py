@@ -1,5 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QIcon, QPixmap
 import keyboard
 from Server import *
 from Design import *
@@ -8,8 +10,7 @@ import sys
 
 
 DEBUG = True
-KEYBOARD = True
-
+KEYBOARD = False
 
 class ThreadServer(QtCore.QObject):
     commandserver = QtCore.pyqtSignal(dict)
@@ -29,6 +30,8 @@ class ThreadServer(QtCore.QObject):
         # словарик получаемый с аппарата
         self.DataInput = {'time': None, 'dept': None,
                           'volt': None, 'azimut': None}
+        
+        self.deli = [1,1,1,1]
         self.lodi = MedaLogging()
 
         self.Server = ServerPult(self.lodi, DEBUG)  # поднимаем сервер
@@ -40,6 +43,7 @@ class ThreadServer(QtCore.QObject):
             self.Controllps4 = MyController()  # поднимаем контролеер
             #self.lodi.info('MyController - init')
             self.DataPult = self.Controllps4.DataPult
+            self.Controllps4.deli = self.deli
 
         self.RateCommandOut = 0.2
         self.telemetria = False
@@ -48,6 +52,9 @@ class ThreadServer(QtCore.QObject):
         self.correctCom = True
 
         self.lodi.info('MainPost-init')
+        
+
+        
 
     def RunController(self):
         if KEYBOARD:
@@ -55,7 +62,6 @@ class ThreadServer(QtCore.QObject):
         '''запуск на прослушивание контроллера ps4'''
         # self.lodi.info('MyController-listen')
         self.Controllps4.listen()
-
 
     def run(self):
         # основной цикл программы 
@@ -116,6 +122,8 @@ class ThreadServer(QtCore.QObject):
             # отправка и прием сообщений
             self.Server.ControlProteus(self.DataOutput)
             self.DataInput = self.Server.ReceiverProteus()
+            datagui = self.DataInput
+            datagui['log'] = self.DataOutput
             self.commandserver.emit(self.DataInput)
             
             # Запись принятого массива в лог
@@ -133,26 +141,53 @@ class ThreadServer(QtCore.QObject):
             QtCore.QThread.msleep(1000)
 
 
-class ApplicationGUI(QMainWindow, Ui_MainWindow):
+class ApplicationGUI(QMainWindow, Ui_SoftProteus_2_0):
     def __init__(self):
         # импорт и создание интерфейса
         super().__init__()
         self.setupUi(self)
-        ### часть инициализации сервера ###
+        
+        self.check_connect = False
         
         ### изначальное обнуление всех иконок ###
+        self.lineEdit.returnPressed.connect(self.append_text)
+        
+        
+        
+        pixmap = QPixmap('urc.png')
+        self.logo.setPixmap(pixmap)
         self.progressBar.setValue(0)
         self.Camera.setEnabled(False)
+        self.Connect.setEnabled(False)
+        self.Joystick.setEnabled(False)
+        self.textBrowser_2.setTextColor(QColor(0, 255, 0))
+        self.textBrowser.setTextColor(QColor(0, 255, 0))
+        self.textBrowser.append('### Start Programm ###')
+        self.Connect_2.clicked.connect(self.start_server)
         
         ### создание потоков и привязка ###
         self.thread = QtCore.QThread()
+        
+    def append_text(self):
+        text = self.lineEdit.text()
+        self.textBrowser.append(text)
+        self.lineEdit.clear()
+    
+    def start_server(self):
+        # запуск сервера
         self.threadserver = ThreadServer()
         self.threadserver.moveToThread(self.thread)
         self.threadserver.commandserver.connect(self.updategui)
         self.thread.started.connect(self.threadserver.run)
+        self.textBrowser.append('### Connecting ###')
+        ### запуск джойстика ####
+        self.threadJoi = threading.Thread(target=self.threadserver.RunController)
+        self.threadJoi.start()
         self.thread.start()
+        
 
     def closeEvent(self,e):
+        # диалоговое окошко закрытия 
         result = QtWidgets.QMessageBox.question(self, "Подтверждение закрытия окна",
                                                 "Вы действительно хотите закрыть окно?",
                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
@@ -164,11 +199,17 @@ class ApplicationGUI(QMainWindow, Ui_MainWindow):
             e.ignore()
 
     @QtCore.pyqtSlot(dict)
-    def updategui(self, mass):
-        # обновление интерфейса 
-        self.lcdNumber.display(mass['term'])
-        self.lcdNumber_2.display(mass['azim'])
-        self.lcdNumber_3.display(mass['dept'])
+    def updategui(self, dataMass):
+        if not self.check_connect:
+            self.check_connect = True
+            self.textBrowser.append('### ROV Connected ###')
+        # обновление интерфейса а также вывод в логи к кмд  
+        self.lcdNumber.display(dataMass['term'])
+        self.lcdNumber_2.display(dataMass['azim'])
+        self.lcdNumber_3.display(dataMass['dept'])
+        self.textBrowser_2.append(str(dataMass['log']))
+
+
 
 
 class MainPost:

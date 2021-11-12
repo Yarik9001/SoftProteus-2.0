@@ -10,7 +10,6 @@ from pyPS4Controller.controller import Controller
 from keyboard import wait, on_release_key, on_press_key
 
 
-
 class MedaLogging:
     '''Класс отвечающий за логирование. Логи пишуться в файл, так же выводться в консоль'''
 
@@ -19,7 +18,7 @@ class MedaLogging:
         self.mylogs.setLevel(logging.DEBUG)
         # обработчик записи в лог-файл
         name = '0.2 GUI/logs/' + '-'.join('-'.join('-'.join(str(datetime.now()
-                                                                     ).split()).split('.')).split(':')) + '.log'
+                                                                ).split()).split('.')).split(':')) + '.log'
         self.file = logging.FileHandler(name)
         self.fileformat = logging.Formatter(
             "%(asctime)s:%(levelname)s:%(message)s")
@@ -81,7 +80,7 @@ class ServerPult:
         # выбор режима: Отладка\Запуск на реальном аппарате
         if debug:
             self.HOST = '127.0.0.1'
-            self.PORT = 1114
+            self.PORT = 1115
         else:
             self.HOST = '192.168.1.107'
             self.PORT = 1236
@@ -142,6 +141,8 @@ class MyController(Controller):
                          'ry-cor': 0, 'rx-cor': 0,
                          'man': 90, 'servoCam': 90,
                          'led': False, 'auto-dept': False}
+
+        self.deli = [1, 1, 1, 1]
         self.log = True
         self.telemetria = False
         self.optionscontrol = False
@@ -158,13 +159,13 @@ class MyController(Controller):
     # блок опроса джойстиков
     def on_L3_up(self, value):
         '''погружение'''
-        self.DataPult['j2-val-y'] = value
+        self.DataPult['j2-val-y'] = value / self.deli[1]
         if self.telemetria:
             print('forward')
 
     def on_L3_down(self, value):
         '''всплытие'''
-        self.DataPult['j2-val-y'] = value
+        self.DataPult['j2-val-y'] = value / self.deli[1]
         if self.telemetria:
             print('back')
 
@@ -179,7 +180,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j2-val-x'] = value
         else:
-            self.DataPult['j2-val-x'] = value // 2
+            self.DataPult['j2-val-x'] = value // self.deli[0]
         if self.telemetria:
             print('left')
 
@@ -188,7 +189,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j2-val-x'] = value
         else:
-            self.DataPult['j2-val-x'] = value // 2
+            self.DataPult['j2-val-x'] = value // self.deli[0]
         if self.telemetria:
             print('right')
 
@@ -203,7 +204,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j1-val-y'] = -1 * value
         else:
-            self.DataPult['j1-val-y'] = -1 * value // 2
+            self.DataPult['j1-val-y'] = -1 * value // self.deli[3]
         if self.telemetria:
             print('up')
 
@@ -212,7 +213,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j1-val-y'] = -1 * value
         else:
-            self.DataPult['j1-val-y'] = -1 * value // 2
+            self.DataPult['j1-val-y'] = -1 * value // self.deli[3]
         if self.telemetria:
             print('down')
 
@@ -227,7 +228,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j1-val-x'] = value // 3
         else:
-            self.DataPult['j1-val-x'] = value // 6
+            self.DataPult['j1-val-x'] = value // self.deli[2]
         if self.telemetria:
             print('turn-left')
 
@@ -236,7 +237,7 @@ class MyController(Controller):
         if self.nitro:
             self.DataPult['j1-val-x'] = value // 3
         else:
-            self.DataPult['j1-val-x'] = value // 6
+            self.DataPult['j1-val-x'] = value // self.deli[2]
         if self.telemetria:
             print('turn-left')
 
@@ -379,7 +380,7 @@ class MyControllerKeyboard:
 
     def back(self, key):
         self.DataPult['j1-val-y'] = -327672
-        
+
         if self.telemetria:
             print('back')
 
@@ -390,7 +391,7 @@ class MyControllerKeyboard:
 
     def left(self, key):
         self.DataPult['j1-val-x'] = -32767
-        
+
         if self.telemetria:
             print('left')
 
@@ -401,7 +402,7 @@ class MyControllerKeyboard:
 
     def right(self, key):
         self.DataPult['j1-val-x'] = 32767
-    
+
         if self.telemetria:
             print('right')
 
@@ -412,7 +413,7 @@ class MyControllerKeyboard:
 
     def up(self, key):
         self.DataPult['j2-val-y'] = 32767
-    
+
         if self.telemetria:
             print('up')
 
@@ -423,7 +424,7 @@ class MyControllerKeyboard:
 
     def down(self, key):
         self.DataPult['j2-val-y'] = -32767
-        
+
         if self.telemetria:
             print('down')
 
