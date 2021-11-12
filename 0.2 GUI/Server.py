@@ -81,11 +81,10 @@ class ServerPult:
         # выбор режима: Отладка\Запуск на реальном аппарате
         if debug:
             self.HOST = '127.0.0.1'
-            self.PORT = 1113
+            self.PORT = 1114
         else:
-            self.HOST = '192.168.1.106'
-            self.PORT = 1231
-
+            self.HOST = '192.168.1.107'
+            self.PORT = 1236
         # настройка сервера
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM,)
         print(self.HOST, self.PORT)
@@ -345,7 +344,7 @@ class MyControllerKeyboard:
                          'man': 90, 'servoCam': 90,
                          'led': False, 'auto-dept': False}
         self.log = True
-        self.telemetria = False
+        self.telemetria = True
         self.optionscontrol = False
         self.nitro = False
 

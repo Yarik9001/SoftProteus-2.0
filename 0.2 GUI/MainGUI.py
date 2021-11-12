@@ -7,7 +7,7 @@ import threading
 import sys
 
 
-DEBUG = False
+DEBUG = True
 KEYBOARD = True
 
 
@@ -50,6 +50,8 @@ class ThreadServer(QtCore.QObject):
         self.lodi.info('MainPost-init')
 
     def RunController(self):
+        if KEYBOARD:
+            self.keboar.wait()
         '''запуск на прослушивание контроллера ps4'''
         # self.lodi.info('MyController-listen')
         self.Controllps4.listen()
@@ -150,7 +152,16 @@ class ApplicationGUI(QMainWindow, Ui_MainWindow):
         self.thread.started.connect(self.threadserver.run)
         self.thread.start()
 
-
+    def closeEvent(self,e):
+        result = QtWidgets.QMessageBox.question(self, "Подтверждение закрытия окна",
+                                                "Вы действительно хотите закрыть окно?",
+                                                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                QtWidgets.QMessageBox.No)
+        if result == QtWidgets.QMessageBox.Yes:
+            e.accept()
+            QtWidgets.QWidget.closeEvent(self, e)
+        else:
+            e.ignore()
 
     @QtCore.pyqtSlot(dict)
     def updategui(self, mass):
@@ -158,7 +169,7 @@ class ApplicationGUI(QMainWindow, Ui_MainWindow):
         self.lcdNumber.display(mass['term'])
         self.lcdNumber_2.display(mass['azim'])
         self.lcdNumber_3.display(mass['dept'])
-        
+
 
 class MainPost:
     def __init__(self):
